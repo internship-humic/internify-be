@@ -22,6 +22,7 @@ lerna-debug.log*
 # Editor & IDE settings
 .vscode/
 .idea/
+.zed/
 *.suo
 *.ntvs*
 *.njsproj
@@ -31,3 +32,6 @@ lerna-debug.log*
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# Prisma
+/src/generated/prisma
