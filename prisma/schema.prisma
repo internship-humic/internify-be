@@ -1,0 +1,137 @@
+//docs: https://www.prisma.io/docs/orm/v6/prisma-schema/overview
+generator client {
+    provider = "prisma-client"
+    output   = "../src/generated/prisma"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    ADMIN
+    STUDENT
+}
+
+enum StatusLamaran {
+    DITERIMA
+    DIPROSES
+    DITOLAK
+}
+
+enum PaidStatus {
+    PAID
+    UNPAID
+}
+
+enum StatusLowongan {
+    DIBUKA
+    DITUTUP
+}
+
+model User {
+    id           String   @id @default(cuid())
+    email        String   @unique @db.VarChar(255)
+    passwordHash String   @map("password_hash") @db.Text
+    role         Role
+    // ...
+    createdAt    DateTime @default(now()) @map("created_at")
+    updatedAt    DateTime @updatedAt @map("updated_at")
+
+    admin     Admin?
+    mahasiswa Mahasiswa?
+
+    @@map("user")
+}
+
+model Admin {
+    id           Int     @id @default(autoincrement())
+    idUser       String  @unique @map("id_user")
+    namaDepan    String  @map("nama_depan") @db.VarChar(255)
+    namaBelakang String? @map("nama_belakang") @db.VarChar(255)
+
+    user User @relation(fields: [idUser], references: [id], map: "admin_id_user_foreign")
+
+    @@map("admin")
+}
+
+model Mahasiswa {
+    id             Int     @id @default(autoincrement())
+    idUser         String  @unique @map("id_user")
+    namaDepan      String  @map("nama_depan") @db.VarChar(255)
+    namaBelakang   String? @map("nama_belakang") @db.VarChar(255)
+    kontak         String  @db.VarChar(255)
+    jurusan        String  @db.VarChar(255)
+    universitas    String  @db.VarChar(255)
+    negara         String  @db.VarChar(255)
+    cvPath         String  @map("cv_path") @db.Text
+    portofolioPath String  @map("portofolio_path") @db.Text
+    motivasi       String  @db.Text
+    relevantSkills String  @map("relevant_skills") @db.VarChar(255)
+
+    user User @relation(fields: [idUser], references: [id], map: "mahasiswa_id_user_foreign")
+
+    lamaranMagangs LamaranMagang[]
+
+    @@map("mahasiswa")
+}
+
+model Batch {
+    id          Int      @id @default(autoincrement())
+    batchNumber Int      @unique @map("batch_number")
+    isActive    Boolean  @default(false) @map("is_active")
+    createdAt   DateTime @default(now()) @map("created_at")
+    updatedAt   DateTime @updatedAt @map("updated_at")
+
+    lowonganMagangs LowonganMagang[]
+    lamaranMagangs  LamaranMagang[]
+
+    @@index([isActive])
+    @@index([batchNumber])
+    @@map("batch")
+}
+
+model LowonganMagang {
+    id                String         @id @db.VarChar(255)
+    idBatch           Int            @map("id_batch")
+    posisi            String         @db.VarChar(255)
+    kelompokPeminatan String         @map("kelompok_peminatan") @db.VarChar(255)
+    imagePath         String         @map("image_path") @db.Text
+    jobdesk           String         @db.Text
+    lokasi            String         @db.VarChar(255)
+    kualifikasi       String         @db.Text
+    benefit           String         @db.Text
+    durasiAwal        DateTime       @map("durasi_awal") @db.Date
+    durasiAkhir       DateTime       @map("durasi_akhir") @db.Date
+    statusLowongan    StatusLowongan @map("status_lowongan")
+    paid              PaidStatus
+    createdAt         DateTime       @default(now()) @map("created_at")
+
+    batch Batch @relation(fields: [idBatch], references: [id], map: "lowongan_magang_id_batch_foreign")
+
+    lamaranMagangs LamaranMagang[]
+
+    @@index([idBatch], map: "lowongan_magang_id_batch_foreign")
+    @@map("lowongan_magang")
+}
+
+model LamaranMagang {
+    id               Int           @id @default(autoincrement())
+    idMahasiswa      Int           @map("id_mahasiswa")
+    idLowonganMagang String        @map("id_lowongan_magang") @db.VarChar(255)
+    status           StatusLamaran
+    batch            Int?
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    batchData      Batch?         @relation(fields: [batch], references: [id], map: "lamaran_magang_batch_foreign")
+    mahasiswa      Mahasiswa      @relation(fields: [idMahasiswa], references: [id], map: "lamaran_magang_id_mahasiswa_foreign")
+    lowonganMagang LowonganMagang @relation(fields: [idLowonganMagang], references: [id], map: "lamaran_magang_id_lowongan_magang_foreign")
+
+    @@index([idMahasiswa], map: "lamaran_magang_id_mahasiswa_foreign")
+    @@index([idLowonganMagang], map: "lamaran_magang_id_lowongan_magang_foreign")
+    @@index([batch])
+    @@map("lamaran_magang")
+}
