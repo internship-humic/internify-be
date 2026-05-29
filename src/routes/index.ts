@@ -1,6 +1,10 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import prisma from '../lib/prisma';
+import authRouter from './auth';
 
 const router = Router();
+
+router.use('/auth', authRouter);
 
 /**
  * @route   GET /api/health
@@ -13,6 +17,31 @@ router.get('/health', (_req: Request, res: Response) => {
 		message: 'Server is running smoothly',
 		timestamp: new Date().toISOString(),
 	});
+});
+
+/**
+ * @route   GET /api/users
+ * @desc    Mendapatkan daftar semua user dari database menggunakan Prisma
+ * @access  Public
+ */
+router.get('/users', async (_req: Request, res: Response, next: NextFunction) => {
+	try {
+		const users = await prisma.user.findMany({
+			select: {
+				id: true,
+				email: true,
+				role: true,
+				createdAt: true,
+			},
+		});
+		res.status(200).json({
+			success: true,
+			count: users.length,
+			data: users,
+		});
+	} catch (error) {
+		next(error);
+	}
 });
 
 /**
