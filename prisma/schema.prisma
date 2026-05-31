@@ -135,3 +135,68 @@ model LamaranMagang {
     @@index([batch])
     @@map("lamaran_magang")
 }
+
+model RiwayatPelamar {
+    id                 Int      @id @default(autoincrement())
+    batch              Int
+    negara             String?  @db.VarChar(255)
+    posisi             String?  @db.VarChar(255)
+    tahun              Int
+    jumlah             Int
+    pelamarDiterima    Int      @map("pelamar_diterima")
+    pelamarDitolak     Int      @map("pelamar_ditolak")
+    pelamarDiproses    Int      @map("pelamar_diproses")
+    presentaseDiterima Float    @map("presentase_diterima")
+    presentaseDitolak  Float    @map("presentase_ditolak")
+    presentaseDiproses Float    @map("presentase_diproses")
+    createdAt          DateTime @default(now()) @map("created_at")
+
+    @@unique([batch, negara, posisi])
+    @@index([batch])
+    @@index([negara])
+    @@index([posisi])
+    @@map("riwayat_pelamar")
+}
+
+model Feedback {
+    id          Int      @id @default(autoincrement())
+    nama        String   @db.VarChar(255)
+    universitas String   @db.VarChar(255)
+    pesan       String   @db.Text
+    batch       Int
+    posisi      String   @db.VarChar(255)
+    tahun       Int
+    imagePath   String   @map("image_path") @db.Text
+    createdAt   DateTime @default(now()) @map("created_at")
+
+    @@map("feedback")
+}
+
+model HasilResearch {
+    id          Int      @id @default(autoincrement())
+    imagePath   String   @map("image_path") @db.Text
+    namaProject String   @map("nama_project") @db.VarChar(255)
+    deskripsi   String   @db.VarChar(255)
+    linkProject String   @map("link_project") @db.Text
+    createdAt   DateTime @default(now()) @map("created_at")
+
+    @@map("hasil_research")
+}
+
+model Partnership {
+    id          Int      @id @default(autoincrement())
+    namaPartner String   @map("nama_partner") @db.VarChar(255)
+    imagePath   String   @map("image_path") @db.Text
+    createdAt   DateTime @default(now()) @map("created_at")
+
+    @@map("partnership")
+}
+
+model Faq {
+    id         Int      @id @default(autoincrement())
+    pertanyaan String   @db.Text
+    jawaban    String   @db.Text
+    createdAt  DateTime @default(now()) @map("created_at")
+
+    @@map("faq")
+}
