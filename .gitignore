@@ -4,6 +4,12 @@ node_modules/
 # Production Build Output
 dist/
 
+# Uploads
+uploads/docs/*
+!uploads/docs/.gitkeep
+uploads/images/*
+!uploads/images/.gitkeep
+
 # Local Environment variables
 .env
 .env.local

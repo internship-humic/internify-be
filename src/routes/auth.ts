@@ -17,7 +17,7 @@ const generateToken = (payload: { id: string; email: string; role: string }) => 
 
 /**
  * @route   POST /api/auth/register
- * @desc    Mendaftarkan user baru dengan role STUDENT (Mahasiswa)
+ * @desc    Daftarin user baru dgn role STUDENT (Mahasiswa)
  * @access  Public
  */
 router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
@@ -101,7 +101,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
 
 /**
  * @route   POST /api/auth/login
- * @desc    Autentikasi user dan dapatin token
+ * @desc    Autentikasi user biar dapet token
  * @access  Public
  */
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
@@ -145,12 +145,14 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 
 		res.status(200).json({
 			success: true,
-			token,
-			user: {
-				id: user.id,
-				email: user.email,
-				role: user.role,
-				profile,
+			data: {
+				token,
+				user: {
+					id: user.id,
+					email: user.email,
+					role: user.role,
+					profile,
+				},
 			},
 		});
 	} catch (error) {
@@ -159,11 +161,11 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 /**
- * @route   GET /api/auth/profile
- * @desc    Dapatin profile user yang sedang login
+ * @route   GET /api/auth/me
+ * @desc    Dapetin info ringkas user yg login buat navbar
  * @access  Private
  */
-router.get('/profile', protect, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.get('/me', protect, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
 		const userId = req.user?.id;
 
@@ -176,20 +178,21 @@ router.get('/profile', protect, async (req: AuthenticatedRequest, res: Response,
 		});
 
 		if (!user) {
-			const error: CustomError = new Error('User tidak ditemukan');
+			const error: CustomError = new Error('User not found');
 			error.statusCode = 404;
 			return next(error);
 		}
 
 		const profile = user.role === 'ADMIN' ? user.admin : user.mahasiswa;
+		const namaDepan = profile?.namaDepan || '';
 
 		res.status(200).json({
-			success: true,
-			user: {
+			status: true,
+			data: {
 				id: user.id,
 				email: user.email,
 				role: user.role,
-				profile,
+				nama_depan: namaDepan
 			},
 		});
 	} catch (error) {

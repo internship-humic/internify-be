@@ -1,10 +1,23 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import prisma from '../lib/prisma';
 import authRouter from './auth';
+import lowonganRouter from './lowongan';
+import lamaranRouter from './lamaran';
+import partnershipRouter from './partnership';
+import researchRouter from './research';
+import feedbackRouter from './feedback';
+import faqRouter from './faq';
 
 const router = Router();
 
 router.use('/auth', authRouter);
+router.use('/auth-api', authRouter);
+router.use('/lowongan-magang-api', lowonganRouter);
+router.use('/lamaran-magang-api', lamaranRouter);
+router.use('/partnership-api', partnershipRouter);
+router.use('/hasil-research-api', researchRouter);
+router.use('/feedback-api', feedbackRouter);
+router.use('/faq-api', faqRouter);
 
 /**
  * @route   GET /api/health
