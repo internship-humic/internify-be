@@ -161,11 +161,11 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 });
 
 /**
- * @route   GET /api/auth/profile
- * @desc    Dapetin profil user yg lagi login
+ * @route   GET /api/auth/me
+ * @desc    Dapetin info ringkas user yg login buat navbar
  * @access  Private
  */
-router.get('/profile', protect, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+router.get('/me', protect, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
 		const userId = req.user?.id;
 
@@ -178,20 +178,21 @@ router.get('/profile', protect, async (req: AuthenticatedRequest, res: Response,
 		});
 
 		if (!user) {
-			const error: CustomError = new Error('User tidak ditemukan');
+			const error: CustomError = new Error('User not found');
 			error.statusCode = 404;
 			return next(error);
 		}
 
 		const profile = user.role === 'ADMIN' ? user.admin : user.mahasiswa;
+		const namaDepan = profile?.namaDepan || '';
 
 		res.status(200).json({
-			success: true,
-			user: {
+			status: true,
+			data: {
 				id: user.id,
 				email: user.email,
 				role: user.role,
-				profile,
+				nama_depan: namaDepan
 			},
 		});
 	} catch (error) {
