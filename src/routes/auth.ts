@@ -17,7 +17,7 @@ const generateToken = (payload: { id: string; email: string; role: string }) => 
 
 /**
  * @route   POST /api/auth/register
- * @desc    Mendaftarkan user baru dengan role STUDENT (Mahasiswa)
+ * @desc    Daftarin user baru dgn role STUDENT (Mahasiswa)
  * @access  Public
  */
 router.post('/register', async (req: Request, res: Response, next: NextFunction) => {
@@ -101,7 +101,7 @@ router.post('/register', async (req: Request, res: Response, next: NextFunction)
 
 /**
  * @route   POST /api/auth/login
- * @desc    Autentikasi user dan dapatin token
+ * @desc    Autentikasi user biar dapet token
  * @access  Public
  */
 router.post('/login', async (req: Request, res: Response, next: NextFunction) => {
@@ -145,12 +145,14 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 
 		res.status(200).json({
 			success: true,
-			token,
-			user: {
-				id: user.id,
-				email: user.email,
-				role: user.role,
-				profile,
+			data: {
+				token,
+				user: {
+					id: user.id,
+					email: user.email,
+					role: user.role,
+					profile,
+				},
 			},
 		});
 	} catch (error) {
@@ -160,7 +162,7 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 
 /**
  * @route   GET /api/auth/profile
- * @desc    Dapatin profile user yang sedang login
+ * @desc    Dapetin profil user yg lagi login
  * @access  Private
  */
 router.get('/profile', protect, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

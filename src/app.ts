@@ -1,3 +1,4 @@
+import path from 'path';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -8,9 +9,16 @@ import { errorHandler, CustomError } from './middleware/errorHandler';
 const app = express();
 
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+	origin: true,
+	credentials: true,
+}));
 
 app.use(morgan('dev'));
+
+// File upload statis biar bisa diakses lewat /uploads atau /api/uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
