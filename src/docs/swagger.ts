@@ -186,12 +186,12 @@ const swaggerOptions = {
         }
     },
     apis: [
-        path.join(__dirname, '../app.ts'),
-        path.join(__dirname, '../app.js'),
-        path.join(__dirname, '../routes/*.ts'),
-        path.join(__dirname, '../controllers/*.ts'),
-        path.join(__dirname, '../routes/*.js'),
-        path.join(__dirname, '../controllers/*.js')
+        path.join(__dirname, '../app.ts').replace(/\\/g, '/'),
+        path.join(__dirname, '../app.js').replace(/\\/g, '/'),
+        path.join(__dirname, '../routes/*.ts').replace(/\\/g, '/'),
+        path.join(__dirname, '../controllers/*.ts').replace(/\\/g, '/'),
+        path.join(__dirname, '../routes/*.js').replace(/\\/g, '/'),
+        path.join(__dirname, '../controllers/*.js').replace(/\\/g, '/')
     ]
 };
 
