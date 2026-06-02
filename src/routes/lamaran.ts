@@ -39,9 +39,124 @@ function mapToFrontend(lamaran: any) {
 }
 
 /**
- * @route   POST /api/lamaran-magang-api/add/:lowonganId
- * @desc    Kirim pendaftaran magang baru
- * @access  Public
+ * @swagger
+ * /api/lamaran-magang-api/add/{lowonganId}:
+ *   post:
+ *     summary: Kirim lamaran magang baru
+ *     description: Mengirim pendaftaran magang ke lowongan tertentu beserta CV dan portofolio (PDF).
+ *     tags: [Lamaran Magang]
+ *     parameters:
+ *       - in: path
+ *         name: lowonganId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID lowongan magang
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nama_depan
+ *               - email
+ *               - kontak
+ *               - universitas
+ *               - negara
+ *               - jurusan
+ *               - motivasi
+ *               - cv
+ *               - portofolio
+ *             properties:
+ *               nama_depan:
+ *                 type: string
+ *                 example: Alya
+ *               nama_belakang:
+ *                 type: string
+ *                 example: Putri
+ *               email:
+ *                 type: string
+ *                 example: alya@example.com
+ *               kontak:
+ *                 type: string
+ *                 example: 081234567890
+ *               universitas:
+ *                 type: string
+ *                 example: Telkom University
+ *               negara:
+ *                 type: string
+ *                 example: Indonesia
+ *               jurusan:
+ *                 type: string
+ *                 example: Informatika
+ *               batch:
+ *                 type: integer
+ *                 example: 3
+ *               motivasi:
+ *                 type: string
+ *                 example: Saya ingin belajar langsung dari tim engineering.
+ *               relevant_skills:
+ *                 type: string
+ *                 example: React, TypeScript, Node.js
+ *               cv:
+ *                 type: string
+ *                 format: binary
+ *               portofolio:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Lamaran berhasil dikirim
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Pendaftaran magang berhasil dikirim
+ *       400:
+ *         description: Validasi pengajuan lamaran gagal
+ *         content:
+ *           application/json:
+ *             examples:
+ *               field_wajib:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 400
+ *                   message: Mohon lengkapi semua field wajib yang diperlukan
+ *               dokumen_wajib:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 400
+ *                   message: CV dan Portofolio wajib diunggah!
+ *       404:
+ *         description: Lowongan magang tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Lowongan magang tidak ditemukan
+ *       500:
+ *         description: Terjadi kesalahan server (termasuk validasi tipe file upload)
+ *         content:
+ *           application/json:
+ *             examples:
+ *               tipe_file_pdf:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: CV dan Portofolio harus dalam format PDF!
+ *               internal:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: Internal Server Error
  */
 router.post(
 	'/add/:lowonganId',
@@ -177,9 +292,35 @@ router.post(
 );
 
 /**
- * @route   GET /api/lamaran-magang-api/get
- * @desc    Dapetin semua data pelamar (admin aja ya)
- * @access  Private (Admin)
+ * @swagger
+ * /api/lamaran-magang-api/get:
+ *   get:
+ *     summary: Ambil seluruh data lamaran
+ *     description: Mengambil daftar seluruh lamaran magang. Hanya dapat diakses oleh admin.
+ *     tags: [Lamaran Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Data lamaran berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get', protect, restrictTo('ADMIN'), async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -202,9 +343,48 @@ router.get('/get', protect, restrictTo('ADMIN'), async (_req: AuthenticatedReque
 });
 
 /**
- * @route   GET /api/lamaran-magang-api/get/:id
- * @desc    Dapetin detail satu lamaran berdasarkan id
- * @access  Private (Admin)
+ * @swagger
+ * /api/lamaran-magang-api/get/{id}:
+ *   get:
+ *     summary: Ambil detail lamaran berdasarkan ID
+ *     description: Mengambil detail satu lamaran magang. Hanya dapat diakses oleh admin.
+ *     tags: [Lamaran Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID lamaran magang
+ *     responses:
+ *       200:
+ *         description: Detail lamaran berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         description: Lamaran tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Lamaran tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get/:id', protect, restrictTo('ADMIN'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -235,9 +415,69 @@ router.get('/get/:id', protect, restrictTo('ADMIN'), async (req: AuthenticatedRe
 });
 
 /**
- * @route   PATCH /api/lamaran-magang-api/update/:id
- * @desc    Ganti status lamaran (diterima, ditolak, dll)
- * @access  Private (Admin)
+ * @swagger
+ * /api/lamaran-magang-api/update/{id}:
+ *   patch:
+ *     summary: Perbarui status lamaran
+ *     description: Mengubah status lamaran menjadi `DIPROSES`, `DITERIMA`, atau `DITOLAK`. Hanya admin.
+ *     tags: [Lamaran Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID lamaran magang
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [DIPROSES, DITERIMA, DITOLAK]
+ *                 example: DITERIMA
+ *     responses:
+ *       200:
+ *         description: Status lamaran berhasil diperbarui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Status lamaran berhasil diupdate
+ *       400:
+ *         description: Validasi status lamaran gagal
+ *         content:
+ *           application/json:
+ *             examples:
+ *               status_kosong:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 400
+ *                   message: Mohon masukkan status baru
+ *               status_tidak_valid:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 400
+ *                   message: Status tidak valid
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.patch('/update/:id', protect, restrictTo('ADMIN'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -281,9 +521,28 @@ router.patch('/update/:id', protect, restrictTo('ADMIN'), async (req: Authentica
 });
 
 /**
- * @route   DELETE /api/lamaran-magang-api/delete
- * @desc    Hapus semua data pelamar
- * @access  Private (Admin)
+ * @swagger
+ * /api/lamaran-magang-api/delete:
+ *   delete:
+ *     summary: Hapus seluruh data lamaran
+ *     description: Menghapus seluruh data lamaran magang. Hanya dapat diakses oleh admin.
+ *     tags: [Lamaran Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Seluruh data pelamar berhasil dihapus
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: true
+ *               message: Seluruh data pelamar berhasil dihapus
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.delete('/delete', protect, restrictTo('ADMIN'), async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -298,9 +557,28 @@ router.delete('/delete', protect, restrictTo('ADMIN'), async (_req: Authenticate
 });
 
 /**
- * @route   GET /api/lamaran-magang-api/export
- * @desc    Ekspor data pelamar ke file Excel (.xlsx)
- * @access  Private (Admin)
+ * @swagger
+ * /api/lamaran-magang-api/export:
+ *   get:
+ *     summary: Ekspor data lamaran ke file Excel
+ *     description: Mengunduh data lamaran dalam format `.xlsx`. Hanya dapat diakses oleh admin.
+ *     tags: [Lamaran Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: File Excel berhasil dibuat
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/export', protect, restrictTo('ADMIN'), async (_req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {

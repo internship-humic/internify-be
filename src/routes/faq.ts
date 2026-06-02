@@ -16,9 +16,29 @@ function mapToFrontend(faq: any) {
 }
 
 /**
- * @route   GET /api/faq-api/get
- * @desc    Dapetin semua list FAQ
- * @access  Public
+ * @swagger
+ * /api/faq-api/get:
+ *   get:
+ *     summary: Ambil seluruh FAQ
+ *     description: Mengembalikan daftar semua pertanyaan dan jawaban FAQ.
+ *     tags: [FAQ]
+ *     responses:
+ *       200:
+ *         description: Data FAQ berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get', async (_req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -35,9 +55,42 @@ router.get('/get', async (_req: Request, res: Response, next: NextFunction) => {
 });
 
 /**
- * @route   GET /api/faq-api/get/:id
- * @desc    Dapetin detail satu FAQ
- * @access  Public
+ * @swagger
+ * /api/faq-api/get/{id}:
+ *   get:
+ *     summary: Ambil detail FAQ berdasarkan ID
+ *     description: Mengembalikan detail satu item FAQ.
+ *     tags: [FAQ]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID FAQ
+ *     responses:
+ *       200:
+ *         description: Detail FAQ berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *       404:
+ *         description: FAQ tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: FAQ tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get/:id', async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -62,9 +115,58 @@ router.get('/get/:id', async (req: Request, res: Response, next: NextFunction) =
 });
 
 /**
- * @route   POST /api/faq-api/add
- * @desc    Tambah FAQ baru (khusus admin ya)
- * @access  Private (Admin)
+ * @swagger
+ * /api/faq-api/add:
+ *   post:
+ *     summary: Tambah FAQ baru
+ *     description: Menambahkan item FAQ baru. Hanya dapat diakses oleh admin.
+ *     tags: [FAQ]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pertanyaan
+ *               - jawaban
+ *             properties:
+ *               pertanyaan:
+ *                 type: string
+ *                 example: Apakah magang ini bisa remote?
+ *               jawaban:
+ *                 type: string
+ *                 example: Ya, beberapa posisi mendukung skema remote.
+ *     responses:
+ *       201:
+ *         description: FAQ berhasil ditambahkan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: FAQ berhasil ditambahkan
+ *       400:
+ *         description: Validasi FAQ gagal
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 400
+ *               message: Pertanyaan dan jawaban harus diisi
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.post('/add', protect, restrictTo('ADMIN'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -94,9 +196,60 @@ router.post('/add', protect, restrictTo('ADMIN'), async (req: AuthenticatedReque
 });
 
 /**
- * @route   PATCH /api/faq-api/update/:id
- * @desc    Update data FAQ (khusus admin)
- * @access  Private (Admin)
+ * @swagger
+ * /api/faq-api/update/{id}:
+ *   patch:
+ *     summary: Perbarui FAQ
+ *     description: Memperbarui item FAQ berdasarkan ID. Hanya dapat diakses oleh admin.
+ *     tags: [FAQ]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID FAQ
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               pertanyaan:
+ *                 type: string
+ *               jawaban:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: FAQ berhasil diperbarui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: FAQ berhasil diupdate
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         description: FAQ tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: FAQ tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.patch('/update/:id', protect, restrictTo('ADMIN'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -132,9 +285,43 @@ router.patch('/update/:id', protect, restrictTo('ADMIN'), async (req: Authentica
 });
 
 /**
- * @route   DELETE /api/faq-api/delete/:id
- * @desc    Hapus data FAQ (khusus admin)
- * @access  Private (Admin)
+ * @swagger
+ * /api/faq-api/delete/{id}:
+ *   delete:
+ *     summary: Hapus FAQ
+ *     description: Menghapus item FAQ berdasarkan ID. Hanya dapat diakses oleh admin.
+ *     tags: [FAQ]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID FAQ
+ *     responses:
+ *       200:
+ *         description: FAQ berhasil dihapus
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: true
+ *               message: FAQ berhasil dihapus
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         description: FAQ tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: FAQ tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.delete('/delete/:id', protect, restrictTo('ADMIN'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {

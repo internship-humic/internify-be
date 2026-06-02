@@ -19,9 +19,29 @@ function mapToFrontend(product: any) {
 }
 
 /**
- * @route   GET /api/hasil-research-api/get
- * @desc    Dapetin semua hasil riset/products
- * @access  Public
+ * @swagger
+ * /api/hasil-research-api/get:
+ *   get:
+ *     summary: Ambil semua hasil research
+ *     description: Mengembalikan daftar seluruh project hasil research.
+ *     tags: [Hasil Research]
+ *     responses:
+ *       200:
+ *         description: Data hasil research berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get', async (_req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -38,9 +58,42 @@ router.get('/get', async (_req: Request, res: Response, next: NextFunction) => {
 });
 
 /**
- * @route   GET /api/hasil-research-api/get/:id
- * @desc    Dapetin detail satu hasil riset/product
- * @access  Public
+ * @swagger
+ * /api/hasil-research-api/get/{id}:
+ *   get:
+ *     summary: Ambil detail hasil research berdasarkan ID
+ *     description: Mengembalikan detail satu project hasil research.
+ *     tags: [Hasil Research]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID hasil research
+ *     responses:
+ *       200:
+ *         description: Detail hasil research berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *       404:
+ *         description: Project tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Project tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get/:id', async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -65,9 +118,78 @@ router.get('/get/:id', async (req: Request, res: Response, next: NextFunction) =
 });
 
 /**
- * @route   POST /api/hasil-research-api/add
- * @desc    Tambah hasil riset baru (khusus admin ya)
- * @access  Private (Admin)
+ * @swagger
+ * /api/hasil-research-api/add:
+ *   post:
+ *     summary: Tambah hasil research baru
+ *     description: Menambahkan data project hasil research baru. Hanya dapat diakses oleh admin.
+ *     tags: [Hasil Research]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - nama_project
+ *               - deskripsi
+ *               - link_project
+ *             properties:
+ *               nama_project:
+ *                 type: string
+ *                 example: Sistem Monitoring Tanaman IoT
+ *               deskripsi:
+ *                 type: string
+ *                 example: Project monitoring kelembapan tanah berbasis IoT.
+ *               link_project:
+ *                 type: string
+ *                 example: https://example.com/project/monitoring-tanaman
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Hasil research berhasil ditambahkan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Research project berhasil ditambahkan
+ *       400:
+ *         description: Validasi input hasil research gagal
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 400
+ *               message: Mohon lengkapi semua field yang wajib diisi
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         description: Terjadi kesalahan server (termasuk validasi file upload)
+ *         content:
+ *           application/json:
+ *             examples:
+ *               file_bukan_gambar:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: File upload harus berupa gambar!
+ *               internal:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: Internal Server Error
  */
 router.post('/add', protect, restrictTo('ADMIN'), upload.single('image'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -101,9 +223,78 @@ router.post('/add', protect, restrictTo('ADMIN'), upload.single('image'), async 
 });
 
 /**
- * @route   PATCH /api/hasil-research-api/update/:id
- * @desc    Update data hasil riset (khusus admin)
- * @access  Private (Admin)
+ * @swagger
+ * /api/hasil-research-api/update/{id}:
+ *   patch:
+ *     summary: Perbarui hasil research
+ *     description: Memperbarui data hasil research berdasarkan ID. Hanya dapat diakses oleh admin.
+ *     tags: [Hasil Research]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID hasil research
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nama_project:
+ *                 type: string
+ *               deskripsi:
+ *                 type: string
+ *               link_project:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Hasil research berhasil diperbarui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Research project berhasil diupdate
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         description: Project tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Project tidak ditemukan
+ *       500:
+ *         description: Terjadi kesalahan server (termasuk validasi file upload)
+ *         content:
+ *           application/json:
+ *             examples:
+ *               file_bukan_gambar:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: File upload harus berupa gambar!
+ *               internal:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: Internal Server Error
  */
 router.patch('/update/:id', protect, restrictTo('ADMIN'), upload.single('image'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -146,9 +337,43 @@ router.patch('/update/:id', protect, restrictTo('ADMIN'), upload.single('image')
 });
 
 /**
- * @route   DELETE /api/hasil-research-api/delete/:id
- * @desc    Hapus data hasil riset (khusus admin)
- * @access  Private (Admin)
+ * @swagger
+ * /api/hasil-research-api/delete/{id}:
+ *   delete:
+ *     summary: Hapus hasil research
+ *     description: Menghapus data hasil research berdasarkan ID. Hanya dapat diakses oleh admin.
+ *     tags: [Hasil Research]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID hasil research
+ *     responses:
+ *       200:
+ *         description: Hasil research berhasil dihapus
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: true
+ *               message: Research project berhasil dihapus
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         description: Project tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Project tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.delete('/delete/:id', protect, restrictTo('ADMIN'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
