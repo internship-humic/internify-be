@@ -42,9 +42,42 @@ function mapToFrontend(lowongan: any) {
 }
 
 /**
- * @route   GET /api/lowongan-magang-api/get
- * @desc    Ambil semua daftar lowongan magang nih
- * @access  Public
+ * @swagger
+ * /api/lowongan-magang-api/get:
+ *   get:
+ *     summary: Ambil seluruh lowongan magang
+ *     description: Mengembalikan daftar semua lowongan magang yang tersedia.
+ *     tags: [Lowongan Magang]
+ *     responses:
+ *       200:
+ *         description: Daftar lowongan berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         example: lowongan-frontend
+ *                       posisi:
+ *                         type: string
+ *                         example: Frontend Developer Intern
+ *                       kelompok_peminatan:
+ *                         type: string
+ *                         example: Web Engineering
+ *                       status_lowongan:
+ *                         type: string
+ *                         example: DIBUKA
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get', async (_req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -61,9 +94,30 @@ router.get('/get', async (_req: Request, res: Response, next: NextFunction) => {
 });
 
 /**
- * @route   GET /api/lowongan-magang-api/get/kelompok-all
- * @desc    Ambil semua kelompok peminatan yg unik
- * @access  Public
+ * @swagger
+ * /api/lowongan-magang-api/get/kelompok-all:
+ *   get:
+ *     summary: Ambil semua kelompok peminatan unik
+ *     description: Mengembalikan daftar kategori peminatan tanpa duplikasi.
+ *     tags: [Lowongan Magang]
+ *     responses:
+ *       200:
+ *         description: Daftar kelompok peminatan berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   example: ["Web Engineering", "Design & Creative"]
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get/kelompok-all', async (_req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -82,9 +136,52 @@ router.get('/get/kelompok-all', async (_req: Request, res: Response, next: NextF
 });
 
 /**
- * @route   GET /api/lowongan-magang-api/get/id/:id
- * @desc    Ambil detail lowongan magang berdasarkan id
- * @access  Public
+ * @swagger
+ * /api/lowongan-magang-api/get/id/{id}:
+ *   get:
+ *     summary: Ambil detail lowongan berdasarkan ID
+ *     description: Mengembalikan detail satu lowongan magang berdasarkan parameter `id`.
+ *     tags: [Lowongan Magang]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID lowongan
+ *     responses:
+ *       200:
+ *         description: Detail lowongan berhasil diambil
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       example: lowongan-frontend
+ *                     posisi:
+ *                       type: string
+ *                       example: Frontend Developer Intern
+ *                     kelompok_peminatan:
+ *                       type: string
+ *                       example: Web Engineering
+ *       404:
+ *         description: Lowongan tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Lowongan tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.get('/get/id/:id', async (req: Request, res: Response, next: NextFunction) => {
 	try {
@@ -107,9 +204,105 @@ router.get('/get/id/:id', async (req: Request, res: Response, next: NextFunction
 });
 
 /**
- * @route   POST /api/lowongan-magang-api/add
- * @desc    Tambah lowongan magang baru (khusus admin ya)
- * @access  Private (Admin)
+ * @swagger
+ * /api/lowongan-magang-api/add:
+ *   post:
+ *     summary: Tambah lowongan magang baru
+ *     description: Membuat lowongan magang baru. Hanya dapat diakses oleh admin.
+ *     tags: [Lowongan Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - posisi
+ *               - kelompok_peminatan
+ *               - lokasi
+ *               - jobdesk
+ *               - durasi_awal
+ *               - durasi_akhir
+ *               - paid
+ *             properties:
+ *               posisi:
+ *                 type: string
+ *                 example: Frontend Developer Intern
+ *               kelompok_peminatan:
+ *                 type: string
+ *                 example: Web Engineering
+ *               lokasi:
+ *                 type: string
+ *                 example: Remote
+ *               jobdesk:
+ *                 type: string
+ *                 example: Mengembangkan antarmuka responsif menggunakan React.
+ *               kualifikasi:
+ *                 type: string
+ *                 example: Memahami React JS, ES6 JavaScript, HTML, CSS.
+ *               benefit:
+ *                 type: string
+ *                 example: Sertifikat magang resmi, jam kerja fleksibel.
+ *               durasi_awal:
+ *                 type: string
+ *                 format: date
+ *                 example: 2026-06-01
+ *               durasi_akhir:
+ *                 type: string
+ *                 format: date
+ *                 example: 2026-09-01
+ *               paid:
+ *                 type: string
+ *                 enum: [PAID, UNPAID]
+ *                 example: PAID
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       201:
+ *         description: Lowongan berhasil ditambahkan
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Internship lowongan berhasil ditambahkan
+ *                 data:
+ *                   type: object
+ *       400:
+ *         description: Validasi input lowongan gagal
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 400
+ *               message: Mohon lengkapi semua field yang wajib diisi
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       500:
+ *         description: Terjadi kesalahan server (termasuk validasi file upload)
+ *         content:
+ *           application/json:
+ *             examples:
+ *               file_bukan_gambar:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: File upload harus berupa gambar!
+ *               internal:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: Internal Server Error
  */
 router.post('/add', protect, restrictTo('ADMIN'), upload.single('image'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -166,9 +359,98 @@ router.post('/add', protect, restrictTo('ADMIN'), upload.single('image'), async 
 });
 
 /**
- * @route   PATCH /api/lowongan-magang-api/update/:id
- * @desc    Update data lowongan magang (khusus admin)
- * @access  Private (Admin)
+ * @swagger
+ * /api/lowongan-magang-api/update/{id}:
+ *   patch:
+ *     summary: Perbarui data lowongan magang
+ *     description: Memperbarui data lowongan berdasarkan ID. Hanya dapat diakses oleh admin.
+ *     tags: [Lowongan Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID lowongan
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               posisi:
+ *                 type: string
+ *               kelompok_peminatan:
+ *                 type: string
+ *               lokasi:
+ *                 type: string
+ *               jobdesk:
+ *                 type: string
+ *               kualifikasi:
+ *                 type: string
+ *               benefit:
+ *                 type: string
+ *               durasi_awal:
+ *                 type: string
+ *                 format: date
+ *               durasi_akhir:
+ *                 type: string
+ *                 format: date
+ *               paid:
+ *                 type: string
+ *                 enum: [PAID, UNPAID]
+ *               status_lowongan:
+ *                 type: string
+ *                 enum: [DIBUKA, DITUTUP]
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Lowongan berhasil diperbarui
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Lowongan berhasil diupdate
+ *                 data:
+ *                   type: object
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         description: Lowongan tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Lowongan tidak ditemukan
+ *       500:
+ *         description: Terjadi kesalahan server (termasuk validasi file upload)
+ *         content:
+ *           application/json:
+ *             examples:
+ *               file_bukan_gambar:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: File upload harus berupa gambar!
+ *               internal:
+ *                 value:
+ *                   status: error
+ *                   statusCode: 500
+ *                   message: Internal Server Error
  */
 router.patch('/update/:id', protect, restrictTo('ADMIN'), upload.single('image'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
@@ -229,9 +511,49 @@ router.patch('/update/:id', protect, restrictTo('ADMIN'), upload.single('image')
 });
 
 /**
- * @route   DELETE /api/lowongan-magang-api/delete/:id
- * @desc    Hapus lowongan magang (khusus admin)
- * @access  Private (Admin)
+ * @swagger
+ * /api/lowongan-magang-api/delete/{id}:
+ *   delete:
+ *     summary: Hapus lowongan magang
+ *     description: Menghapus data lowongan berdasarkan ID. Hanya dapat diakses oleh admin.
+ *     tags: [Lowongan Magang]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID lowongan
+ *     responses:
+ *       200:
+ *         description: Lowongan berhasil dihapus
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Lowongan berhasil dihapus
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       403:
+ *         $ref: '#/components/responses/ForbiddenError'
+ *       404:
+ *         description: Lowongan tidak ditemukan
+ *         content:
+ *           application/json:
+ *             example:
+ *               status: error
+ *               statusCode: 404
+ *               message: Lowongan tidak ditemukan
+ *       500:
+ *         $ref: '#/components/responses/InternalServerError'
  */
 router.delete('/delete/:id', protect, restrictTo('ADMIN'), async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
 	try {
