@@ -12,6 +12,7 @@ const hasilResearchRoutes = require('./routes/hasilResearch.routes');
 const faqRoutes = require('./routes/faq.routes');
 const feedbackRoutes = require('./routes/feedback.routes');
 const batchRoutes = require('./routes/batch.routes');
+const projectRoutes = require('./routes/project.routes');
 const setupSwaggerDocs = require('./docs/swagger');
 
 const PORT = process.env.PORT;
@@ -54,6 +55,10 @@ app.use("/hasil-research-api", hasilResearchRoutes);
 app.use("/faq-api", faqRoutes);
 app.use("/feedback-api", feedbackRoutes);
 app.use("/batch-api", batchRoutes);
+app.use("/project-api", projectRoutes);
+// app.use("/project-member-api", projectMemberRoutes);
+// app.use("/task-api", taskRoutes);
+
 
 setupSwaggerDocs(app);
 
