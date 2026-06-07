@@ -23,6 +23,11 @@ model Admin {
     password      String  @db.Text
     signature     String? @db.Text // singature untuk identifikasi auth jwt (best practice)
 
+    profile_picture  String? @db.Text
+    professional_bio String? @db.Text
+
+    projects Project[]
+
     @@map("admin")
 }
 
@@ -47,6 +52,7 @@ model LamaranMagang {
     created_at DateTime @default(now())
     update_at  DateTime
 
+    user            User?
     batch_data      Batch?         @relation(fields: [batch], references: [id], map: "lamaran_magang_batch_foreign")
     mahasiswa       Mahasiswa      @relation(fields: [id_mahasiswa], references: [id], map: "lamaran_magang_id_mahasiswa_foreign")
     lowongan_magang LowonganMagang @relation(fields: [id_lowongan_magang], references: [id], map: "lamaran_magang_id_lowongan_magang_foreign")
@@ -95,6 +101,7 @@ model Mahasiswa {
     motivasi        String      @db.Text
     relevant_skills String      @db.VarChar(255)
 
+    user           User?
     lamaran_magang LamaranMagang[]
 
     @@map("mahasiswa")
@@ -170,8 +177,107 @@ model Batch {
     @@map("batch")
 }
 
+model User {
+    id                Int      @id @default(autoincrement())
+    id_mahasiswa      Int      @unique
+    id_lamaran_magang Int      @unique
+    full_name         String   @db.VarChar(255)
+    email             String   @unique @db.VarChar(255)
+    password          String   @db.Text
+    role              Role     @default(intern)
+    professional_bio  String?  @db.Text
+    is_active         Boolean  @default(true)
+    created_at        DateTime @default(now())
+    updated_at        DateTime @updatedAt
+
+    mahasiswa        Mahasiswa        @relation(fields: [id_mahasiswa], references: [id], map: "user_id_mahasiswa_foreign")
+    lamaran_magang   LamaranMagang    @relation(fields: [id_lamaran_magang], references: [id], map: "user_id_lamaran_magang_foreign")
+    project_members  ProjectMember[]
+    task_submissions TaskSubmission[]
+
+    @@index([email])
+    @@map("user")
+}
+
+model Project {
+    id           Int           @id @default(autoincrement())
+    id_admin     Int //mentor project
+    project_icon ProjectIcon   @default(code)
+    project_name String        @db.VarChar(255)
+    description  String        @db.Text
+    start_date   DateTime      @db.Date
+    end_date     DateTime      @db.Date
+    max_members  Int           @default(8)
+    status       ProjectStatus @default(active)
+    created_at   DateTime      @default(now())
+    updated_at   DateTime      @updatedAt
+
+    admin   Admin           @relation(fields: [id_admin], references: [id], map: "project_id_admin_foreign")
+    members ProjectMember[]
+    tasks   Task[]
+
+    @@index([id_admin], map: "project_id_admin_foreign")
+    @@index([status])
+    @@map("project")
+}
+
+model ProjectMember {
+    id         Int                 @id @default(autoincrement())
+    id_project Int
+    id_user    Int
+    status     ProjectMemberStatus @default(active)
+    created_at DateTime            @default(now())
+    updated_at DateTime            @updatedAt
+
+    project Project @relation(fields: [id_project], references: [id], map: "project_member_id_project_foreign")
+    user    User    @relation(fields: [id_user], references: [id], map: "project_member_id_user_foreign")
+
+    @@unique([id_project, id_user])
+    @@index([id_project], map: "project_member_id_project_foreign")
+    @@index([id_user], map: "project_member_id_user_foreign")
+    @@index([status])
+    @@map("project_member")
+}
+
+model Task {
+    id              Int            @id @default(autoincrement())
+    id_project      Int
+    title           String         @db.VarChar(255)
+    description     String         @db.Text
+    deadline_at     DateTime
+    submission_type SubmissionType
+    created_at      DateTime       @default(now())
+    updated_at      DateTime       @updatedAt
+
+    project     Project          @relation(fields: [id_project], references: [id], map: "task_id_project_foreign")
+    submissions TaskSubmission[]
+
+    @@index([id_project], map: "task_id_project_foreign")
+    @@index([deadline_at])
+    @@map("task")
+}
+
+model TaskSubmission {
+    id           Int      @id @default(autoincrement())
+    id_task      Int
+    id_user      Int
+    file_path    String?  @db.Text
+    url_link     String?  @db.Text
+    submitted_at DateTime @default(now())
+    updated_at   DateTime @updatedAt
+
+    task Task @relation(fields: [id_task], references: [id], map: "task_submission_id_task_foreign")
+    user User @relation(fields: [id_user], references: [id], map: "task_submission_id_user_foreign")
+
+    @@unique([id_task, id_user])
+    @@index([id_task], map: "task_submission_id_task_foreign")
+    @@index([id_user], map: "task_submission_id_user_foreign")
+    @@map("task_submission")
+}
+
 enum Role {
     admin
+    intern
 }
 
 enum StudentRole {
@@ -192,4 +298,33 @@ enum StatusLowongan {
 enum PaidStatus {
     paid
     unpaid
+}
+
+enum ProjectIcon {
+    code
+    chart
+    cloud
+    mobile
+    gear
+    users
+    clipboard
+    speedometer
+    lightbulb
+    shield
+}
+
+enum ProjectStatus {
+    active
+    completed
+    archived
+}
+
+enum ProjectMemberStatus {
+    active
+    removed
+}
+
+enum SubmissionType {
+    file_upload
+    url_link
 }
