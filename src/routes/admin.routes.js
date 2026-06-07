@@ -1,0 +1,91 @@
+const express = require('express');
+const { adminController } = require('../modules/admin');
+const { verifyJWT } = require('../middleware/verifyJWT');
+const isAdmin = require('../middleware/isAdmin');
+
+const router = express.Router();
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Admin:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         nama_depan:
+ *           type: string
+ *           example: "John"
+ *         nama_belakang:
+ *           type: string
+ *           example: "Doe"
+ *         email:
+ *           type: string
+ *           example: "admin@example.com"
+ *         role:
+ *           type: string
+ *           example: "admin"
+ */
+
+/**
+ * @swagger
+ * /admin-api/add:
+ *   post:
+ *     summary: Create a new admin account
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nama_depan:
+ *                 type: string
+ *                 example: "John"
+ *               nama_belakang:
+ *                 type: string
+ *                 example: "Doe"
+ *               email:
+ *                 type: string
+ *                 example: "admin@example.com"
+ *               password:
+ *                 type: string
+ *                 example: "password123"
+ *     responses:
+ *       200:
+ *         description: Admin created successfully
+ *       400:
+ *         description: Email already exists or unauthorized access
+ *       500:
+ *         description: Internal server error
+ */
+router.post("/add", verifyJWT, isAdmin, adminController.addAdmin);
+
+/**
+ * @swagger
+ * /admin-api/get:
+ *   get:
+ *     summary: Retrieve all admin account
+ *     tags: [Admin]
+ *     security:
+ *      - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all admins
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Admin'
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/get", verifyJWT, adminController.getAdmins);
+
+module.exports = router;

@@ -1,6 +1,11 @@
-//docs: https://www.prisma.io/docs/orm/v6/prisma-schema/overview
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
 generator client {
-    provider = "prisma-client"
+    provider = "prisma-client-js"
     output   = "../src/generated/prisma"
 }
 
@@ -9,147 +14,125 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-enum Role {
-    ADMIN
-    STUDENT
-}
-
-enum StatusLamaran {
-    DITERIMA
-    DIPROSES
-    DITOLAK
-}
-
-enum PaidStatus {
-    PAID
-    UNPAID
-}
-
-enum StatusLowongan {
-    DIBUKA
-    DITUTUP
-}
-
-model User {
-    id           String   @id @default(cuid())
-    email        String   @unique @db.VarChar(255)
-    passwordHash String   @map("password_hash") @db.Text
-    role         Role
-    // ...
-    createdAt    DateTime @default(now()) @map("created_at")
-    updatedAt    DateTime @updatedAt @map("updated_at")
-
-    admin     Admin?
-    mahasiswa Mahasiswa?
-
-    @@map("user")
-}
-
 model Admin {
-    id           Int     @id @default(autoincrement())
-    idUser       String  @unique @map("id_user")
-    namaDepan    String  @map("nama_depan") @db.VarChar(255)
-    namaBelakang String? @map("nama_belakang") @db.VarChar(255)
-
-    user User @relation(fields: [idUser], references: [id], map: "admin_id_user_foreign")
+    id            Int     @id @default(autoincrement())
+    nama_depan    String  @db.VarChar(255)
+    nama_belakang String  @db.VarChar(255)
+    role          Role    @default(admin)
+    email         String  @unique @db.VarChar(255)
+    password      String  @db.Text
+    signature     String? @db.Text // singature untuk identifikasi auth jwt (best practice)
 
     @@map("admin")
 }
 
-model Mahasiswa {
-    id             Int     @id @default(autoincrement())
-    idUser         String  @unique @map("id_user")
-    namaDepan      String  @map("nama_depan") @db.VarChar(255)
-    namaBelakang   String? @map("nama_belakang") @db.VarChar(255)
-    kontak         String  @db.VarChar(255)
-    jurusan        String  @db.VarChar(255)
-    universitas    String  @db.VarChar(255)
-    negara         String  @db.VarChar(255)
-    cvPath         String  @map("cv_path") @db.Text
-    portofolioPath String  @map("portofolio_path") @db.Text
-    motivasi       String  @db.Text
-    relevantSkills String  @map("relevant_skills") @db.VarChar(255)
+model HasilResearch {
+    id           Int      @id @default(autoincrement())
+    image_path   String   @db.Text
+    nama_project String   @db.VarChar(255)
+    deskripsi    String   @db.VarChar(255)
+    link_project String   @db.Text
+    created_at   DateTime @default(now())
 
-    user User @relation(fields: [idUser], references: [id], map: "mahasiswa_id_user_foreign")
-
-    lamaranMagangs LamaranMagang[]
-
-    @@map("mahasiswa")
-}
-
-model Batch {
-    id          Int      @id @default(autoincrement())
-    batchNumber Int      @unique @map("batch_number")
-    isActive    Boolean  @default(false) @map("is_active")
-    createdAt   DateTime @default(now()) @map("created_at")
-    updatedAt   DateTime @updatedAt @map("updated_at")
-
-    lowonganMagangs LowonganMagang[]
-    lamaranMagangs  LamaranMagang[]
-
-    @@index([isActive])
-    @@index([batchNumber])
-    @@map("batch")
-}
-
-model LowonganMagang {
-    id                String         @id @db.VarChar(255)
-    idBatch           Int            @map("id_batch")
-    posisi            String         @db.VarChar(255)
-    kelompokPeminatan String         @map("kelompok_peminatan") @db.VarChar(255)
-    imagePath         String         @map("image_path") @db.Text
-    jobdesk           String         @db.Text
-    lokasi            String         @db.VarChar(255)
-    kualifikasi       String         @db.Text
-    benefit           String         @db.Text
-    durasiAwal        DateTime       @map("durasi_awal") @db.Date
-    durasiAkhir       DateTime       @map("durasi_akhir") @db.Date
-    statusLowongan    StatusLowongan @map("status_lowongan")
-    paid              PaidStatus
-    createdAt         DateTime       @default(now()) @map("created_at")
-
-    batch Batch @relation(fields: [idBatch], references: [id], map: "lowongan_magang_id_batch_foreign")
-
-    lamaranMagangs LamaranMagang[]
-
-    @@index([idBatch], map: "lowongan_magang_id_batch_foreign")
-    @@map("lowongan_magang")
+    @@map("hasil_research")
 }
 
 model LamaranMagang {
-    id               Int           @id @default(autoincrement())
-    idMahasiswa      Int           @map("id_mahasiswa")
-    idLowonganMagang String        @map("id_lowongan_magang") @db.VarChar(255)
-    status           StatusLamaran
-    batch            Int?
+    id                 Int           @id @default(autoincrement())
+    id_mahasiswa       Int
+    id_lowongan_magang String        @db.VarChar(255)
+    status             StatusLamaran
+    batch              Int?
 
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
+    created_at DateTime @default(now())
+    update_at  DateTime
 
-    batchData      Batch?         @relation(fields: [batch], references: [id], map: "lamaran_magang_batch_foreign")
-    mahasiswa      Mahasiswa      @relation(fields: [idMahasiswa], references: [id], map: "lamaran_magang_id_mahasiswa_foreign")
-    lowonganMagang LowonganMagang @relation(fields: [idLowonganMagang], references: [id], map: "lamaran_magang_id_lowongan_magang_foreign")
+    batch_data      Batch?         @relation(fields: [batch], references: [id], map: "lamaran_magang_batch_foreign")
+    mahasiswa       Mahasiswa      @relation(fields: [id_mahasiswa], references: [id], map: "lamaran_magang_id_mahasiswa_foreign")
+    lowongan_magang LowonganMagang @relation(fields: [id_lowongan_magang], references: [id], map: "lamaran_magang_id_lowongan_magang_foreign")
 
-    @@index([idMahasiswa], map: "lamaran_magang_id_mahasiswa_foreign")
-    @@index([idLowonganMagang], map: "lamaran_magang_id_lowongan_magang_foreign")
+    @@index([id_mahasiswa], map: "lamaran_magang_id_mahasiswa_foreign")
+    @@index([id_lowongan_magang], map: "lamaran_magang_id_lowongan_magang_foreign")
     @@index([batch])
     @@map("lamaran_magang")
 }
 
+model LowonganMagang {
+    id                 String         @id @db.VarChar(255)
+    posisi             String         @db.VarChar(255)
+    kelompok_peminatan String         @db.VarChar(255)
+    image_path         String         @db.Text
+    jobdesk            String         @db.Text
+    lokasi             String         @db.VarChar(255)
+    kualifikasi        String         @db.Text
+    benefit            String         @db.Text
+    durasi_awal        DateTime       @db.Date
+    durasi_akhir       DateTime       @db.Date
+    id_batch           Int
+    batch              Batch          @relation(fields: [id_batch], references: [id], map: "lowongan_magang_id_batch_foreign")
+    status_lowongan    StatusLowongan
+    paid               PaidStatus
+    created_at         DateTime       @default(now())
+
+    lamaran_magang LamaranMagang[]
+
+    @@index([id_batch], map: "lowongan_magang_id_batch_foreign")
+    @@map("lowongan_magang")
+}
+
+model Mahasiswa {
+    id              Int         @id @default(autoincrement())
+    nama_depan      String      @db.VarChar(255)
+    nama_belakang   String?     @db.VarChar(255)
+    email           String      @unique @db.VarChar(255)
+    kontak          String      @db.VarChar(255)
+    jurusan         String      @db.VarChar(255)
+    universitas     String      @db.VarChar(255)
+    negara          String      @db.VarChar(255)
+    role            StudentRole @default(student)
+    cv_path         String      @db.Text
+    portofolio_path String      @db.Text
+    motivasi        String      @db.Text
+    relevant_skills String      @db.VarChar(255)
+
+    lamaran_magang LamaranMagang[]
+
+    @@map("mahasiswa")
+}
+
+model Partnership {
+    id           Int      @id @default(autoincrement())
+    nama_partner String   @db.VarChar(255)
+    image_path   String   @db.Text
+    created_at   DateTime @default(now())
+
+    @@map("partnership")
+}
+
+model Faq {
+    id         Int      @id @default(autoincrement())
+    pertanyaan String   @db.Text
+    jawaban    String   @db.Text
+    created_at DateTime @default(now())
+
+    @@map("faq")
+}
+
 model RiwayatPelamar {
-    id                 Int      @id @default(autoincrement())
-    batch              Int
-    negara             String?  @db.VarChar(255)
-    posisi             String?  @db.VarChar(255)
-    tahun              Int
-    jumlah             Int
-    pelamarDiterima    Int      @map("pelamar_diterima")
-    pelamarDitolak     Int      @map("pelamar_ditolak")
-    pelamarDiproses    Int      @map("pelamar_diproses")
-    presentaseDiterima Float    @map("presentase_diterima")
-    presentaseDitolak  Float    @map("presentase_ditolak")
-    presentaseDiproses Float    @map("presentase_diproses")
-    createdAt          DateTime @default(now()) @map("created_at")
+    id                  Int     @id @default(autoincrement())
+    batch               Int
+    negara              String? @db.VarChar(255)
+    posisi              String? @db.VarChar(255)
+    tahun               Int
+    jumlah              Int
+    pelamar_diterima    Int
+    pelamar_ditolak     Int
+    pelamar_diproses    Int
+    presentase_diterima Float
+    presentase_ditolak  Float
+    presentase_diproses Float
+
+    created_at DateTime @default(now())
 
     @@unique([batch, negara, posisi])
     @@index([batch])
@@ -159,44 +142,54 @@ model RiwayatPelamar {
 }
 
 model Feedback {
-    id          Int      @id @default(autoincrement())
-    nama        String   @db.VarChar(255)
-    universitas String   @db.VarChar(255)
-    pesan       String   @db.Text
+    id          Int    @id @default(autoincrement())
+    nama        String @db.VarChar(255)
+    universitas String @db.VarChar(255)
+    pesan       String @db.Text
     batch       Int
-    posisi      String   @db.VarChar(255)
+    posisi      String @db.VarChar(255)
     tahun       Int
-    imagePath   String   @map("image_path") @db.Text
-    createdAt   DateTime @default(now()) @map("created_at")
+    image_path  String @db.Text
+
+    created_at DateTime @default(now())
 
     @@map("feedback")
 }
 
-model HasilResearch {
-    id          Int      @id @default(autoincrement())
-    imagePath   String   @map("image_path") @db.Text
-    namaProject String   @map("nama_project") @db.VarChar(255)
-    deskripsi   String   @db.VarChar(255)
-    linkProject String   @map("link_project") @db.Text
-    createdAt   DateTime @default(now()) @map("created_at")
+model Batch {
+    id              Int              @id @default(autoincrement())
+    batch_number    Int              @unique
+    is_active       Boolean          @default(false)
+    created_at      DateTime         @default(now())
+    updated_at      DateTime         @updatedAt
+    lowongan_magang LowonganMagang[]
+    lamaranMagangs  LamaranMagang[]
 
-    @@map("hasil_research")
+    @@index([is_active])
+    @@index([batch_number])
+    @@map("batch")
 }
 
-model Partnership {
-    id          Int      @id @default(autoincrement())
-    namaPartner String   @map("nama_partner") @db.VarChar(255)
-    imagePath   String   @map("image_path") @db.Text
-    createdAt   DateTime @default(now()) @map("created_at")
-
-    @@map("partnership")
+enum Role {
+    admin
 }
 
-model Faq {
-    id         Int      @id @default(autoincrement())
-    pertanyaan String   @db.Text
-    jawaban    String   @db.Text
-    createdAt  DateTime @default(now()) @map("created_at")
+enum StudentRole {
+    student
+}
 
-    @@map("faq")
+enum StatusLamaran {
+    diterima
+    diproses
+    ditolak
+}
+
+enum StatusLowongan {
+    dibuka
+    ditutup
+}
+
+enum PaidStatus {
+    paid
+    unpaid
 }
