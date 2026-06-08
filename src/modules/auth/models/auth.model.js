@@ -66,9 +66,28 @@ const resetPasswordModel = joi.object().keys({
     }),
 });
 
+const updateProfileModel = joi.object().keys({
+  full_name: joi.string().max(255).optional().messages({
+    'string.base': 'Nama lengkap harus berupa teks.',
+    'string.max': 'Nama lengkap tidak boleh lebih dari 255 karakter.'
+  }),
+  email: joi.string().email({ tlds: { allow: false } }).optional().messages({
+    'string.base': 'Email harus berupa teks.',
+    'string.email': 'Format email tidak valid.'
+  }),
+  password: joi.string().min(8).optional().messages({
+    'string.base': 'Password harus berupa teks.',
+    'string.min': 'Password minimal {#limit} karakter.'
+  }),
+  professional_bio: joi.string().allow('', null).optional().messages({
+    'string.base': 'Bio harus berupa teks.'
+  })
+});
+
 module.exports = {
   loginModel,
   registerModel,
   forgotPasswordModel,
   resetPasswordModel,
+  updateProfileModel,
 };

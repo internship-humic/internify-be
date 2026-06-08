@@ -7,5 +7,5 @@ module.exports = function isAdmin(req, res, next) {
     return next();
   }
 
-  return response(res, 'fail', new UnauthorizedError('Akses ditolak: Hanya admin yang dapat mengakses ini'), 'Akses ditolak: Hanya admin yang dapat mengakses ini', ERROR.UNAUTHORIZED);
+  return response(res, 'fail', { err: new UnauthorizedError('Akses ditolak: Hanya admin yang dapat mengakses ini') }, 'Akses ditolak: Hanya admin yang dapat mengakses ini', ERROR.UNAUTHORIZED);
 }

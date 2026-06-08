@@ -43,7 +43,7 @@ const sendConfirmationEmail = async (mahasiswa, lowongan) => {
   }
 };
 
-const sendStatusEmail = async (lamaran, status) => {
+const sendStatusEmail = async (lamaran, status, generatedPassword = null) => {
   try {
     const { mahasiswa, lowongan_magang } = lamaran;
     const { nama_depan, nama_belakang, email } = mahasiswa;
@@ -61,6 +61,14 @@ const sendStatusEmail = async (lamaran, status) => {
         <p>Halo ${fullName},</p>
         <p>Selamat! Lamaran Anda untuk posisi <strong>${posisi}</strong> di <strong>Humic Engineering</strong> telah diterima.</p>
         <p>Tim kami sangat terkesan dengan profil dan kualifikasi Anda. Kami akan segera menghubungi Anda terkait tahapan selanjutnya.</p>
+        ${generatedPassword ? `
+        <div style="background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0; border: 1px solid #e0e0e0; font-family: monospace;">
+          <p style="margin-top: 0; font-weight: bold; color: #333; font-family: sans-serif;">Akun Portal Intern Anda telah dibuat:</p>
+          <p style="margin: 5px 0;"><strong>Email:</strong> ${email}</p>
+          <p style="margin: 5px 0;"><strong>Password:</strong> ${generatedPassword}</p>
+          <p style="margin-bottom: 0; font-size: 13px; color: #555; font-family: sans-serif;">Silakan masuk menggunakan akun ini untuk melihat project dan tugas magang Anda.</p>
+        </div>
+        ` : ''}
         <p>Terima kasih telah melamar dan kami menantikan kerja sama yang luar biasa bersama Anda.</p>
       `
       : `

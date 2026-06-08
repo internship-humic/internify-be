@@ -203,6 +203,193 @@ class ProjectRepository {
       },
     };
   }
+
+  async findProjectsByIntern(internId) {
+    return prisma.project.findMany({
+      where: {
+        members: {
+          some: {
+            id_user: parseInt(internId),
+            status: "active",
+          },
+        },
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+      include: {
+        admin: {
+          select: {
+            id: true,
+            nama_depan: true,
+            nama_belakang: true,
+            email: true,
+            profile_picture: true,
+            professional_bio: true,
+          },
+        },
+        members: {
+          where: {
+            status: "active",
+          },
+          select: {
+            id: true,
+          },
+        },
+        tasks: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findTasksByIntern(internId) {
+    return prisma.task.findMany({
+      where: {
+        project: {
+          members: {
+            some: {
+              id_user: parseInt(internId),
+              status: "active",
+            },
+          },
+        },
+      },
+      orderBy: {
+        deadline_at: "asc",
+      },
+      include: {
+        project: {
+          select: {
+            id: true,
+            project_name: true,
+            project_icon: true,
+          },
+        },
+        submissions: {
+          where: {
+            id_user: parseInt(internId),
+          },
+          select: {
+            id: true,
+            file_path: true,
+            url_link: true,
+            submitted_at: true,
+            updated_at: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findProjectsByMentor(adminId) {
+    return prisma.project.findMany({
+      where: {
+        id_admin: parseInt(adminId),
+      },
+      orderBy: {
+        created_at: "desc",
+      },
+      include: {
+        admin: {
+          select: {
+            id: true,
+            nama_depan: true,
+            nama_belakang: true,
+            email: true,
+            profile_picture: true,
+            professional_bio: true,
+          },
+        },
+        members: {
+          where: {
+            status: "active",
+          },
+          select: {
+            id: true,
+          },
+        },
+        tasks: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findActiveInternsWithProjects() {
+    return prisma.user.findMany({
+      where: {
+        role: "intern",
+        is_active: true,
+      },
+      include: {
+        project_members: {
+          where: {
+            status: "active",
+          },
+          include: {
+            project: {
+              select: {
+                id: true,
+                project_name: true,
+              },
+            },
+          },
+        },
+        lamaran_magang: {
+          include: {
+            lowongan_magang: {
+              select: {
+                posisi: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
+  }
+
+  async assignMember(id_project, id_user) {
+    return prisma.projectMember.create({
+      data: {
+        id_project: parseInt(id_project),
+        id_user: parseInt(id_user),
+        status: "active",
+      },
+    });
+  }
+
+  async findUserByIdAndActive(id) {
+    return prisma.user.findFirst({
+      where: {
+        id: parseInt(id),
+        is_active: true,
+      },
+    });
+  }
+
+  async findMembership(idProject, idUser) {
+    return prisma.projectMember.findFirst({
+      where: {
+        id_project: parseInt(idProject),
+        id_user: parseInt(idUser),
+      },
+    });
+  }
+
+  async updateMembershipStatus(id, status) {
+    return prisma.projectMember.update({
+      where: { id: parseInt(id) },
+      data: { status },
+    });
+  }
 }
 
 module.exports = new ProjectRepository();

@@ -271,4 +271,169 @@ router.patch('/update/:id', verifyJWT, isAdmin, projectController.updateProject)
  */
 router.delete('/delete/:id', verifyJWT, isAdmin, projectController.archiveProject);
 
+/**
+ * @swagger
+ * /project-api/my-projects:
+ *   get:
+ *     summary: Get intern's active projects
+ *     description: Retrieve all active projects where the logged-in intern is a member.
+ *     tags: [Project]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Intern projects retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Only for interns)
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/my-projects', verifyJWT, projectController.getMyProjects);
+
+/**
+ * @swagger
+ * /project-api/my-tasks:
+ *   get:
+ *     summary: Get intern's tasks and submission statuses
+ *     description: Retrieve all tasks from all projects where the logged-in intern is an active member, including their specific submission detail/status.
+ *     tags: [Project]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Intern tasks retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Only for interns)
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/my-tasks', verifyJWT, projectController.getMyTasks);
+
+/**
+ * @swagger
+ * /project-api/mentor-projects:
+ *   get:
+ *     summary: Get projects created by mentor
+ *     description: Retrieve all projects created by the logged-in admin/mentor.
+ *     tags: [Project]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Mentor projects retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Only for mentors)
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/mentor-projects', verifyJWT, isAdmin, projectController.getMentorProjects);
+
+/**
+ * @swagger
+ * /project-api/interns:
+ *   get:
+ *     summary: Get all interns details
+ *     description: Retrieve details for all active interns, including their current assigned project and project role. Accessible only by admin/mentor.
+ *     tags: [Project]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Interns details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 message:
+ *                   type: string
+ *                   example: "Interns retrieved successfully"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       name:
+ *                         type: string
+ *                         example: "Rafi Athallah"
+ *                       email:
+ *                         type: string
+ *                         example: "rafi@student.com"
+ *                       projectName:
+ *                         type: string
+ *                         example: "Internify Platform Dev"
+ *                       role:
+ *                         type: string
+ *                         example: "Web Developer"
+ *                       isAssignedByMentor:
+ *                         type: boolean
+ *                         example: true
+ *                       avatar:
+ *                         type: string
+ *                         nullable: true
+ *                         example: null
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Only for admin/mentors)
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/interns', verifyJWT, isAdmin, projectController.getInterns);
+
+/**
+ * @swagger
+ * /project-api/assign-member:
+ *   post:
+ *     summary: Assign an intern to a project
+ *     description: Assigns an intern to a project by project ID and user ID. Only accessible by mentor/admin.
+ *     tags: [Project]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - id_project
+ *               - id_user
+ *             properties:
+ *               id_project:
+ *                 type: integer
+ *                 example: 1
+ *               id_user:
+ *                 type: integer
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: Member assigned successfully
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden (Only for admin/mentors)
+ *       404:
+ *         description: Project or User not found
+ *       409:
+ *         description: Conflict (User is already an active member of this project)
+ *       500:
+ *         description: Internal server error
+ */
+router.post('/assign-member', verifyJWT, isAdmin, projectController.assignMember);
+
 module.exports = router;

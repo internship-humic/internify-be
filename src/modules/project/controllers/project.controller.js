@@ -162,6 +162,111 @@ class ProjectController {
       );
     }
   }
+
+  async getMyProjects(req, res) {
+    try {
+      const actor = getActor(req);
+      const result = await projectService.getMyProjects(actor);
+
+      if (result.err) {
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Intern projects retrieved successfully', SUCCESS.OK);
+    } catch (err) {
+      return response(
+        res,
+        'fail',
+        error(new InternalServerError(err.message)),
+        'Unexpected error occurred',
+        ERROR.INTERNAL_ERROR
+      );
+    }
+  }
+
+  async getMyTasks(req, res) {
+    try {
+      const actor = getActor(req);
+      const result = await projectService.getMyTasks(actor);
+
+      if (result.err) {
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Intern tasks retrieved successfully', SUCCESS.OK);
+    } catch (err) {
+      return response(
+        res,
+        'fail',
+        error(new InternalServerError(err.message)),
+        'Unexpected error occurred',
+        ERROR.INTERNAL_ERROR
+      );
+    }
+  }
+
+  async getMentorProjects(req, res) {
+    try {
+      const actor = getActor(req);
+      const result = await projectService.getMentorProjects(actor);
+
+      if (result.err) {
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Mentor projects retrieved successfully', SUCCESS.OK);
+    } catch (err) {
+      return response(
+        res,
+        'fail',
+        error(new InternalServerError(err.message)),
+        'Unexpected error occurred',
+        ERROR.INTERNAL_ERROR
+      );
+    }
+  }
+
+  async getInterns(req, res) {
+    try {
+      const actor = getActor(req);
+      const result = await projectService.getInterns(actor);
+
+      if (result.err) {
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Interns retrieved successfully', SUCCESS.OK);
+    } catch (err) {
+      return response(
+        res,
+        'fail',
+        error(new InternalServerError(err.message)),
+        'Unexpected error occurred',
+        ERROR.INTERNAL_ERROR
+      );
+    }
+  }
+
+  async assignMember(req, res) {
+    try {
+      const actor = getActor(req);
+      const result = await projectService.assignMember(req.body, actor);
+
+      if (result.err) {
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Member assigned successfully', SUCCESS.OK);
+    } catch (err) {
+      return response(
+        res,
+        'fail',
+        error(new InternalServerError(err.message)),
+        'Unexpected error occurred',
+        ERROR.INTERNAL_ERROR
+      );
+    }
+  }
 }
 
 module.exports = new ProjectController();
