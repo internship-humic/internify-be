@@ -8,6 +8,7 @@ const {
   createTaskModel,
   updateTaskModel,
   submitTaskModel,
+  updateSubmissionModel,
 } = require('../models/task.model');
 
 const getActor = (req) => ({
@@ -189,6 +190,70 @@ class TaskController {
     } catch (err) {
       cleanupUploadedFile(req.file);
 
+      return response(
+        res,
+        'fail',
+        error(new InternalServerError(err.message)),
+        'Unexpected error occurred',
+        ERROR.INTERNAL_ERROR
+      );
+    }
+  }
+
+  async updateSubmission(req, res) {
+    try {
+      const validatePayload = isValidPayload(req.body, updateSubmissionModel);
+
+      if (validatePayload.err) {
+        cleanupUploadedFile(req.file);
+
+        return response(
+          res,
+          'fail',
+          { err: validatePayload.err, data: null },
+          'Invalid submission data',
+          ERROR.EXPECTATION_FAILED
+        );
+      }
+
+      const actor = getActor(req);
+      const result = await taskService.updateSubmission(
+        req.params.id,
+        validatePayload.data,
+        req.file,
+        actor
+      );
+
+      if (result.err) {
+        cleanupUploadedFile(req.file);
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Submission updated successfully', SUCCESS.OK);
+    } catch (err) {
+      cleanupUploadedFile(req.file);
+
+      return response(
+        res,
+        'fail',
+        error(new InternalServerError(err.message)),
+        'Unexpected error occurred',
+        ERROR.INTERNAL_ERROR
+      );
+    }
+  }
+
+  async deleteSubmission(req, res) {
+    try {
+      const actor = getActor(req);
+      const result = await taskService.deleteSubmission(req.params.id, actor);
+
+      if (result.err) {
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Submission deleted successfully', SUCCESS.OK);
+    } catch (err) {
       return response(
         res,
         'fail',

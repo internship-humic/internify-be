@@ -594,4 +594,124 @@ router.post(
   taskController.submitTask
 );
 
+/**
+ * @swagger
+ * /task-api/submissions/{id}:
+ *   patch:
+ *     summary: Update submission
+ *     description: Update an intern submission. Only the owner intern can update their own submission. For file_upload tasks, send submission_file. For url_link tasks, send url_link.
+ *     tags: [Task]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Submission ID
+ *         example: 1
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               submission_file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Required when related task submission_type is file_upload. Allowed file types are PDF, DOCX, and ZIP. Max size is 10MB.
+ *               url_link:
+ *                 type: string
+ *                 format: uri
+ *                 description: Required when related task submission_type is url_link.
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url_link:
+ *                 type: string
+ *                 format: uri
+ *                 example: https://drive.google.com/file/example-updated
+ *     responses:
+ *       200:
+ *         description: Submission updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/TaskSubmissionResponse'
+ *       400:
+ *         description: Bad request
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Submission not found
+ *       417:
+ *         description: Validation error
+ *       500:
+ *         description: Internal server error
+ */
+router.patch(
+  '/submissions/:id',
+  verifyJWT,
+  taskUpload.single('submission_file'),
+  taskUploadErrorHandler,
+  taskController.updateSubmission
+);
+
+/**
+ * @swagger
+ * /task-api/submissions/{id}:
+ *   delete:
+ *     summary: Delete submission
+ *     description: Delete an intern submission. Only the owner intern can delete their own submission.
+ *     tags: [Task]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Submission ID
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Submission deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   nullable: true
+ *                   example: null
+ *                 message:
+ *                   type: string
+ *                   example: Submission deleted successfully
+ *                 code:
+ *                   type: integer
+ *                   example: 200
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
+ *       404:
+ *         description: Submission not found
+ *       500:
+ *         description: Internal server error
+ */
+router.delete(
+  '/submissions/:id',
+  verifyJWT,
+  taskController.deleteSubmission
+);
+
 module.exports = router;

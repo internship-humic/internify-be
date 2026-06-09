@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const baseUploadDir = process.env.NODE_ENV === 'production'
   ? '/tmp/uploads'
-  : path.join(__dirname, '../../uploads');
+  : path.join(__dirname, '../../../uploads');
 
 const taskUploadDir = path.join(baseUploadDir, 'task-submissions');
 
@@ -43,7 +43,7 @@ const taskUpload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024, //2MB
+    fileSize: 10 * 1024 * 1024, //10MB
   },
 });
 
@@ -53,7 +53,7 @@ const taskUploadErrorHandler = (err, _req, res, next) => {
       return res.status(413).json({
         status: false,
         data: null,
-        message: 'File size is too large. Maximum size is 2MB',
+        message: 'File size is too large. Maximum size is 10MB',
         code: 413,
       });
     }
@@ -92,4 +92,5 @@ const taskUploadErrorHandler = (err, _req, res, next) => {
 module.exports = {
   taskUpload,
   taskUploadErrorHandler,
+  taskUploadDir
 };

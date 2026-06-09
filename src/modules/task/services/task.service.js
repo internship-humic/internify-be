@@ -1,4 +1,7 @@
+const fs = require('fs');
+const path = require('path');
 const taskRepository = require('../repositories/task.repository');
+const { taskUploadDir } = require('../helpers/taskUpload.helper');
 const { data, error } = require('../../../helpers/utils/wrapper');
 const {
   BadRequestError,
@@ -261,12 +264,122 @@ class TaskService {
       let submission;
 
       if (existingSubmission) {
+        this.deleteLocalSubmissionFile(existingSubmission.file_path);
         submission = await taskRepository.updateSubmission(existingSubmission.id, submissionData);
       } else {
         submission = await taskRepository.createSubmission(submissionData);
       }
 
       return data(this.mapSubmission(submission));
+    } catch (err) {
+      return error(err);
+    }
+  }
+
+  async updateSubmission(idSubmission, payload, file, actor = {}) {
+    try {
+      if (!this.isPositiveInteger(idSubmission)) {
+        return error(new BadRequestError('Submission ID must be a valid number'));
+      }
+
+      if (!actor?.id || actor.role !== 'intern') {
+        return error(new ForbiddenError('Access denied: only intern can update submission'));
+      }
+
+      const submission = await taskRepository.findSubmissionById(idSubmission);
+
+      if (!submission) {
+        return error(new NotFoundError('Submission not found'));
+      }
+
+      if (submission.id_user !== parseInt(actor.id)) {
+        return error(new ForbiddenError('Access denied: you can only update your own submission'));
+      }
+
+      const membership = await taskRepository.checkActiveProjectMember(
+        submission.task.id_project,
+        actor.id
+      );
+
+      if (!membership) {
+        return error(new ForbiddenError('Access denied: you are not a member of this project'));
+      }
+
+      const updateData = {};
+
+      if (submission.task.submission_type === 'file_upload') {
+        if (!file) {
+          return error(new BadRequestError('Submission file is required for this task'));
+        }
+
+        if (payload.url_link) {
+          return error(new BadRequestError('URL link is not allowed for file upload task'));
+        }
+
+        updateData.file_path = `/uploads/task-submissions/${file.filename}`;
+        updateData.url_link = null;
+      }
+
+      if (submission.task.submission_type === 'url_link') {
+        if (file) {
+          return error(new BadRequestError('File upload is not allowed for URL link task'));
+        }
+
+        if (!payload.url_link) {
+          return error(new BadRequestError('URL link is required for this task'));
+        }
+
+        updateData.file_path = null;
+        updateData.url_link = payload.url_link;
+      }
+
+      this.deleteLocalSubmissionFile(submission.file_path);
+
+      const updatedSubmission = await taskRepository.updateSubmission(
+        idSubmission,
+        updateData
+      );
+
+      return data(this.mapSubmission(updatedSubmission));
+    } catch (err) {
+      return error(err);
+    }
+  }
+
+  async deleteSubmission(idSubmission, actor = {}) {
+    try {
+      if (!this.isPositiveInteger(idSubmission)) {
+        return error(new BadRequestError('Submission ID must be a valid number'));
+      }
+
+      if (!actor?.id || actor.role !== 'intern') {
+        return error(new ForbiddenError('Access denied: only intern can delete submission'));
+      }
+
+      const submission = await taskRepository.findSubmissionById(idSubmission);
+
+      if (!submission) {
+        return error(new NotFoundError('Submission not found'));
+      }
+
+      if (submission.id_user !== parseInt(actor.id)) {
+        return error(new ForbiddenError('Access denied: you can only delete your own submission'));
+      }
+
+      const membership = await taskRepository.checkActiveProjectMember(
+        submission.task.id_project,
+        actor.id
+      );
+
+      if (!membership) {
+        return error(new ForbiddenError('Access denied: you are not a member of this project'));
+      }
+
+      await taskRepository.deleteSubmission(idSubmission);
+
+      this.deleteLocalSubmissionFile(submission.file_path);
+
+      return data(null);
     } catch (err) {
       return error(err);
     }
@@ -430,6 +543,27 @@ class TaskService {
       },
       submissions: mappedSubmissions,
     };
+  }
+
+  deleteLocalSubmissionFile(filePath) {
+    if (!filePath || typeof filePath !== 'string') {
+      return;
+    }
+
+    if (!filePath.startsWith('/uploads/task-submissions/')) {
+      return;
+    }
+
+    if (!taskUploadDir || typeof taskUploadDir !== 'string') {
+      return;
+    }
+
+    const filename = path.basename(filePath);
+    const absolutePath = path.join(taskUploadDir, filename);
+
+    if (fs.existsSync(absolutePath)) {
+      fs.unlinkSync(absolutePath);
+    }
   }
 
   isPositiveInteger(value) {

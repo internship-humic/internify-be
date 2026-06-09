@@ -67,8 +67,16 @@ const submitTaskModel = joi.object().keys({
   }),
 });
 
+const updateSubmissionModel = joi.object().keys({
+  url_link: joi.string().uri().optional().messages({
+    'string.base': 'URL link must be a string.',
+    'string.uri': 'URL link must be a valid URL.',
+  }),
+});
+
 module.exports = {
   createTaskModel,
   updateTaskModel,
   submitTaskModel,
+  updateSubmissionModel,
 };

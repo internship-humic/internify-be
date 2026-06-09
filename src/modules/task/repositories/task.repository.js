@@ -140,6 +140,38 @@ class TaskRepository {
     });
   }
 
+  async findSubmissionById(idSubmission) {
+    return prisma.taskSubmission.findUnique({
+      where: {
+        id: parseInt(idSubmission),
+      },
+      include: {
+        task: {
+          select: {
+            id: true,
+            id_project: true,
+            title: true,
+            submission_type: true,
+            deadline_at: true,
+            project: {
+              select: {
+                id: true,
+                project_name: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            full_name: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
   async createSubmission(submissionData) {
     return prisma.taskSubmission.create({
       data: submissionData,
@@ -152,6 +184,14 @@ class TaskRepository {
         id: parseInt(idSubmission),
       },
       data: submissionData,
+    });
+  }
+
+  async deleteSubmission(idSubmission) {
+    return prisma.taskSubmission.delete({
+      where: {
+        id: parseInt(idSubmission),
+      },
     });
   }
 }
