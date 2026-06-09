@@ -2,6 +2,9 @@ const lamaranMagangRepository = require('../repositories/lamaranMagang.repositor
 const mahasiswaRepository = require('../../mahasiswa/repositories/mahasiswa.repository');
 const lowonganMagangRepository = require('../../lowonganMagang/repositories/lowonganMagang.repository');
 const batchRepository = require('../../batch/repositories/batch.repository');
+const bcrypt = require('bcrypt');
+const prisma = require('../../../helpers/db/db_connection');
+const crypto = require('crypto');
 const imageUploadHelper = require('../../../helpers/utils/imageUpload.helper');
 const { sendConfirmationEmail, sendStatusEmail } = require('../helpers/email.helper');
 const ExcelJS = require('exceljs');
@@ -151,7 +154,40 @@ class LamaranMagangService {
 
       const result = await lamaranMagangRepository.updateStatus(id_lamaran_magang, status);
 
-      await sendStatusEmail(checkResult.data, status);
+      let generatedPassword = null;
+      if (status === 'diterima') {
+        const existingUser = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { id_mahasiswa: checkResult.data.id_mahasiswa },
+              { id_lamaran_magang: parseInt(id_lamaran_magang) },
+              { email: checkResult.data.mahasiswa.email }
+            ]
+          }
+        });
+
+        // Akan dibuat akunnya ketika sudah ACC ama mentor dengan password yang random [Rafi 08/06/2026 16:05]
+        if (!existingUser) {
+          generatedPassword = crypto.randomBytes(4).toString('hex');
+          const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+
+          const fullName = `${checkResult.data.mahasiswa.nama_depan}${checkResult.data.mahasiswa.nama_belakang ? ' ' + checkResult.data.mahasiswa.nama_belakang : ''}`;
+
+          await prisma.user.create({
+            data: {
+              id_mahasiswa: checkResult.data.id_mahasiswa,
+              id_lamaran_magang: parseInt(id_lamaran_magang),
+              full_name: fullName,
+              email: checkResult.data.mahasiswa.email,
+              password: hashedPassword,
+              role: 'intern',
+              is_active: true
+            }
+          });
+        }
+      }
+
+      await sendStatusEmail(checkResult.data, status, generatedPassword);
 
       return data(result);
     } catch (err) {

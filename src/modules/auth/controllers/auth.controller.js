@@ -3,7 +3,9 @@ const { response, data, error } = require('../../../helpers/utils/wrapper');
 const { SUCCESS, ERROR } = require('../../../helpers/http-status/status_code');
 const { BadRequestError, UnauthorizedError, InternalServerError } = require('../../../helpers/error');
 const { isValidPayload } = require('../../../helpers/utils/validator');
-const { loginModel } = require('../models/auth.model');
+const { loginModel, updateProfileModel } = require('../models/auth.model');
+const { deleteFileIfExists } = require('../../../helpers/utils/fileHelper');
+
 
 class AuthController {
   async login(req, res) {
@@ -48,7 +50,7 @@ class AuthController {
         return response(res, 'fail', error(new UnauthorizedError('Tidak diotorisasi: ID pengguna tidak ditemukan')));
       }
 
-      const result = await authService.getCurrentUser(id);
+      const result = await authService.getCurrentUser(id, req.role);
 
       if (result.err) {
         return response(res, 'fail', result);
@@ -64,6 +66,48 @@ class AuthController {
     try {
       return response(res, 'success', data(), 'Logout berhasil', SUCCESS.OK);
     } catch (err) {
+      return response(res, 'fail', error(new InternalServerError(err.message)), 'Terjadi kesalahan yang tidak terduga', ERROR.INTERNAL_ERROR);
+    }
+  }
+
+  async updateProfile(req, res) {
+    try {
+      const validatePayload = isValidPayload(req.body, updateProfileModel);
+
+      if (validatePayload.err) {
+        if (req.file?.filename) {
+          await deleteFileIfExists(req.file.filename).catch(() => { });
+        }
+        return response(
+          res,
+          'fail',
+          { err: validatePayload.err, data: null },
+          'Data tidak valid',
+          ERROR.EXPECTATION_FAILED
+        );
+      }
+
+      const id = req.id;
+      const role = req.role;
+
+      if (!id || !role) {
+        if (req.file?.filename) {
+          await deleteFileIfExists(req.file.filename).catch(() => { });
+        }
+        return response(res, 'fail', error(new UnauthorizedError('Tidak diotorisasi: ID pengguna tidak ditemukan')));
+      }
+
+      const result = await authService.updateProfile(id, role, validatePayload.data, req.file);
+
+      if (result.err) {
+        return response(res, 'fail', result);
+      }
+
+      return response(res, 'success', result, 'Profil berhasil diperbarui', SUCCESS.OK);
+    } catch (err) {
+      if (req.file?.filename) {
+        await deleteFileIfExists(req.file.filename).catch(() => { });
+      }
       return response(res, 'fail', error(new InternalServerError(err.message)), 'Terjadi kesalahan yang tidak terduga', ERROR.INTERNAL_ERROR);
     }
   }
