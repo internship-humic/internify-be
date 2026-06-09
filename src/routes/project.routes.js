@@ -74,6 +74,7 @@ const router = express.Router();
  *           example: 2026-08-10
  *         member_emails:
  *           type: array
+ *           description: Optional intern emails to invite. Each intern must already have an active user account and must not be assigned to another active project.
  *           items:
  *             type: string
  *             format: email
@@ -459,7 +460,7 @@ const router = express.Router();
  * /project-api/add:
  *   post:
  *     summary: Create a new project
- *     description: Create a new Internify LMS project. Admin can optionally invite interns by email.
+ *     description: Create a new Internify LMS project. Admin can optionally invite interns by email. Invited interns must not be active members of another project.
  *     tags: [Project]
  *     security:
  *       - bearerAuth: []
