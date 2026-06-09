@@ -67,6 +67,10 @@ const swaggerOptions = {
       {
         name: "Project",
         description: "Internify LMS project management endpoints"
+      },
+      {
+        name: "Task",
+        description: "Managing project tasks and intern submissions"
       }
     ],
     components: {
