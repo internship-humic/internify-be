@@ -582,14 +582,21 @@ router.get('/get/:id', verifyJWT, projectController.getProjectById);
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/ProjectDetailResponse'
+ *             $ref: '#/components/schemas/ProjectUpdateRequest'
+ *           example:
+ *             project_icon: cloud
+ *             project_name: Internify LMS Updated
+ *             description: Updated project description
+ *             start_date: 2026-06-15
+ *             end_date: 2026-08-20
+ *             status: completed
  *     responses:
  *       200:
  *         description: Project updated successfully
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/ProjectUpdateResponse'
+ *               $ref: '#/components/schemas/ProjectDetailResponse'
  *       400:
  *         description: Bad request
  *       401:
