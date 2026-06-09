@@ -477,19 +477,16 @@ class ProjectService {
         return error(new BadRequestError("Project ID and User ID are required"));
       }
 
-      // Check if project exists
       const project = await projectRepository.findById(id_project);
       if (!project) {
         return error(new NotFoundError("Project not found"));
       }
 
-      // Check if user exists and is active
       const user = await projectRepository.findUserByIdAndActive(id_user);
       if (!user) {
         return error(new NotFoundError("User not found or inactive"));
       }
 
-      // Check if already a member of this project
       const existingMembership = await projectRepository.findMembership(id_project, id_user);
 
       let membership;
@@ -497,10 +494,8 @@ class ProjectService {
         if (existingMembership.status === 'active') {
           return error(new ConflictError("User is already an active member of this project"));
         }
-        // Reactivate membership
         membership = await projectRepository.updateMembershipStatus(existingMembership.id, 'active');
       } else {
-        // Create new membership
         membership = await projectRepository.assignMember(id_project, id_user);
       }
 
