@@ -74,6 +74,7 @@ const router = express.Router();
  *           example: 2026-08-10
  *         member_emails:
  *           type: array
+ *           description: Optional intern emails to invite. Each intern must already have an active user account and must not be assigned to another active project.
  *           items:
  *             type: string
  *             format: email
@@ -103,6 +104,355 @@ const router = express.Router();
  *           type: string
  *           enum: [active, completed, archived]
  *           example: completed
+ *     ProjectAdminSummary:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         full_name:
+ *           type: string
+ *           example: Admin One
+ *         email:
+ *           type: string
+ *           example: admin1@internify.com
+ *         profile_picture:
+ *           type: string
+ *           nullable: true
+ *           example: /uploads/admin-profile.png
+ *         professional_bio:
+ *            type: string
+ *            nullable: true
+ *            example: Senior Program Manager at Internify.
+ *     ProjectListItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         project_icon:
+ *           type: string
+ *           example: code
+ *         project_name:
+ *           type: string
+ *           example: Internify Platform Dev
+ *         description:
+ *           type: string
+ *           example: Upgrading the core Internify platform backend and web client.
+ *         start_date:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-07-15T00:00:00.000Z
+ *         end_date:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-10-15T00:00:00.000Z
+ *         max_members:
+ *           type: integer
+ *           example: 8
+ *         status:
+ *           type: string
+ *           example: active
+ *         admin:
+ *           $ref: '#/components/schemas/ProjectAdminSummary'
+ *         total_members:
+ *           type: integer
+ *           example: 5
+ *         total_tasks:
+ *           type: integer
+ *           example: 3
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-06-10T10:00:00.000Z
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-06-10T10:00:00.000Z
+ *     ProjectMemberUser:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         full_name:
+ *           type: string
+ *           example: Rafi Athallah
+ *         email:
+ *           type: string
+ *           example: rafi@student.com
+ *         professional_bio:
+ *           type: string
+ *           nullable: true
+ *           example: Backend developer intern
+ *         position:
+ *           type: string
+ *           nullable: true
+ *           example: Web Developer
+ *         kelompok_peminatan:
+ *           type: string
+ *           nullable: true
+ *           example: Software Engineering
+ *     ProjectMemberItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         id_user:
+ *           type: integer
+ *           example: 1
+ *         status:
+ *           type: string
+ *           example: active
+ *         user:
+ *           $ref: '#/components/schemas/ProjectMemberUser'
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-06-10T10:00:00.000Z
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-06-10T10:00:00.000Z
+ *     ProjectTaskItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         title:
+ *           type: string
+ *           example: Database Setup
+ *         description:
+ *           type: string
+ *           example: Setup database schema and write initial seed script.
+ *         deadline_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-08-01T00:00:00.000Z
+ *         submission_type:
+ *           type: string
+ *           enum: [file_upload, url_link]
+ *           example: url_link
+ *         created_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-06-10T10:00:00.000Z
+ *         updated_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-06-10T10:00:00.000Z
+ *     ProjectDetail:
+ *       allOf:
+ *         - $ref: '#/components/schemas/ProjectListItem'
+ *         - type: object
+ *           properties:
+ *             members:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProjectMemberItem'
+ *             tasks:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ProjectTaskItem'
+ *     ProjectListResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ProjectListItem'
+ *         message:
+ *           type: string
+ *           example: Projects retrieved successfully
+ *         code:
+ *           type: integer
+ *           example: 200
+ *     ProjectDetailResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           $ref: '#/components/schemas/ProjectDetail'
+ *         message:
+ *           type: string
+ *           example: Project detail retrieved successfully
+ *         code:
+ *           type: integer
+ *           example: 200
+ *     InternListItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         name:
+ *           type: string
+ *           example: Rafi Athallah
+ *         email:
+ *           type: string
+ *           example: rafi@student.com
+ *         projectName:
+ *           type: string
+ *           example: Internify Platform Dev
+ *         projectId:
+ *           type: integer
+ *           nullable: true
+ *           example: 1
+ *         role:
+ *           type: string
+ *           example: Web Developer
+ *         isAssignedByMentor:
+ *           type: boolean
+ *           example: true
+ *         avatar:
+ *           type: string
+ *           nullable: true
+ *           example: null
+ *     InternListResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/InternListItem'
+ *         message:
+ *           type: string
+ *           example: Interns retrieved successfully
+ *         code:
+ *           type: integer
+ *           example: 200
+ *     MyTaskItem:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           example: 1
+ *         id_project:
+ *           type: integer
+ *           example: 1
+ *         project_name:
+ *           type: string
+ *           example: Internify Platform Dev
+ *         project_icon:
+ *           type: string
+ *           example: code
+ *         title:
+ *           type: string
+ *           example: Database Setup
+ *         description:
+ *           type: string
+ *           example: Setup database schema and write initial seed script.
+ *         deadline_at:
+ *           type: string
+ *           format: date-time
+ *           example: 2026-08-01T00:00:00.000Z
+ *         submission_type:
+ *           type: string
+ *           enum: [file_upload, url_link]
+ *           example: url_link
+ *         submission_status:
+ *           type: string
+ *           enum: [submitted, not_submitted]
+ *           example: submitted
+ *         submission_details:
+ *           type: object
+ *           nullable: true
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 1
+ *             file_path:
+ *               type: string
+ *               nullable: true
+ *               example: null
+ *             url_link:
+ *               type: string
+ *               nullable: true
+ *               example: https://github.com/rafiathallah3
+ *             submitted_at:
+ *               type: string
+ *               format: date-time
+ *               example: 2026-07-20T10:00:00.000Z
+ *             updated_at:
+ *               type: string
+ *               format: date-time
+ *               example: 2026-07-20T10:00:00.000Z
+ *     MyTaskListResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/MyTaskItem'
+ *         message:
+ *           type: string
+ *           example: Intern tasks retrieved successfully
+ *         code:
+ *           type: integer
+ *           example: 200
+ *     AssignMemberResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: boolean
+ *           example: true
+ *         data:
+ *           type: object
+ *           properties:
+ *             id:
+ *               type: integer
+ *               example: 1
+ *             id_project:
+ *               type: integer
+ *               example: 1
+ *             id_user:
+ *               type: integer
+ *               example: 2
+ *             status:
+ *               type: string
+ *               example: active
+ *             created_at:
+ *               type: string
+ *               format: date-time
+ *               example: 2026-06-10T10:00:00.000Z
+ *             updated_at:
+ *               type: string
+ *               format: date-time
+ *               example: 2026-06-10T10:00:00.000Z
+ *         message:
+ *           type: string
+ *           example: Member assigned successfully
+ *         code:
+ *           type: integer
+ *           example: 200
+ *     ErrorResponse:
+ *       type: object
+ *       properties:
+ *         status:
+ *           type: boolean
+ *           example: false
+ *         data:
+ *           nullable: true
+ *           example: null
+ *         message:
+ *           type: string
+ *           example: Validation error
+ *         code:
+ *           type: integer
+ *           example: 417
  */
 
 /**
@@ -110,7 +460,7 @@ const router = express.Router();
  * /project-api/add:
  *   post:
  *     summary: Create a new project
- *     description: Create a new Internify LMS project. Admin can optionally invite interns by email.
+ *     description: Create a new Internify LMS project. Admin can optionally invite interns by email. Invited interns must not be active members of another project.
  *     tags: [Project]
  *     security:
  *       - bearerAuth: []
@@ -123,6 +473,10 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Project created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProjectDetailResponse'
  *       400:
  *         description: Bad request
  *       401:
@@ -159,6 +513,10 @@ router.post('/add', verifyJWT, isAdmin, projectController.createProject);
  *     responses:
  *       200:
  *         description: Projects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProjectListResponse'
  *       401:
  *         description: Unauthorized
  *       417:
@@ -188,6 +546,10 @@ router.get('/get', verifyJWT, projectController.getAllProjects);
  *     responses:
  *       200:
  *         description: Project detail retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProjectDetailResponse'
  *       401:
  *         description: Unauthorized
  *       403:
@@ -222,9 +584,20 @@ router.get('/get/:id', verifyJWT, projectController.getProjectById);
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/ProjectUpdateRequest'
+ *           example:
+ *             project_icon: cloud
+ *             project_name: Internify LMS Updated
+ *             description: Updated project description
+ *             start_date: 2026-06-15
+ *             end_date: 2026-08-20
+ *             status: completed
  *     responses:
  *       200:
  *         description: Project updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProjectDetailResponse'
  *       400:
  *         description: Bad request
  *       401:
@@ -260,6 +633,10 @@ router.patch('/update/:id', verifyJWT, isAdmin, projectController.updateProject)
  *     responses:
  *       200:
  *         description: Project archived successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProjectDetailResponse'
  *       401:
  *         description: Unauthorized
  *       403:
@@ -283,6 +660,10 @@ router.delete('/delete/:id', verifyJWT, isAdmin, projectController.archiveProjec
  *     responses:
  *       200:
  *         description: Intern projects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProjectListResponse'
  *       401:
  *         description: Unauthorized
  *       403:
@@ -304,6 +685,10 @@ router.get('/my-projects', verifyJWT, projectController.getMyProjects);
  *     responses:
  *       200:
  *         description: Intern tasks retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MyTaskListResponse'
  *       401:
  *         description: Unauthorized
  *       403:
@@ -325,6 +710,10 @@ router.get('/my-tasks', verifyJWT, projectController.getMyTasks);
  *     responses:
  *       200:
  *         description: Mentor projects retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ProjectListResponse'
  *       401:
  *         description: Unauthorized
  *       403:
@@ -421,6 +810,10 @@ router.get('/interns', verifyJWT, isAdmin, projectController.getInterns);
  *     responses:
  *       200:
  *         description: Member assigned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/AssignMemberResponse'
  *       400:
  *         description: Bad request
  *       401:

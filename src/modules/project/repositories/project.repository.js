@@ -390,6 +390,32 @@ class ProjectRepository {
       data: { status },
     });
   }
+
+  async findActiveMembershipsByUserIds(userIds) {
+    return prisma.projectMember.findMany({
+      where: {
+        id_user: {
+          in: userIds.map((id) => parseInt(id)),
+        },
+        status: "active",
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            full_name: true,
+            email: true,
+          },
+        },
+        project: {
+          select: {
+            id: true,
+            project_name: true,
+          },
+        },
+      },
+    });
+  }
 }
 
 module.exports = new ProjectRepository();
