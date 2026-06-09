@@ -194,6 +194,7 @@ model User {
     lamaran_magang   LamaranMagang    @relation(fields: [id_lamaran_magang], references: [id], map: "user_id_lamaran_magang_foreign")
     project_members  ProjectMember[]
     task_submissions TaskSubmission[]
+    certificates     Certificate[]
 
     @@index([email])
     @@map("user")
@@ -212,9 +213,10 @@ model Project {
     created_at   DateTime      @default(now())
     updated_at   DateTime      @updatedAt
 
-    admin   Admin           @relation(fields: [id_admin], references: [id], map: "project_id_admin_foreign")
-    members ProjectMember[]
-    tasks   Task[]
+    admin        Admin           @relation(fields: [id_admin], references: [id], map: "project_id_admin_foreign")
+    members      ProjectMember[]
+    tasks        Task[]
+    certificates Certificate[]
 
     @@index([id_admin], map: "project_id_admin_foreign")
     @@index([status])
@@ -327,4 +329,21 @@ enum ProjectMemberStatus {
 enum SubmissionType {
     file_upload
     url_link
+}
+
+model Certificate {
+    id             Int      @id @default(autoincrement())
+    uuid           String   @unique @default(uuid()) @db.VarChar(36)
+    id_project     Int
+    id_user        Int
+    certificate_no String   @unique @db.VarChar(255)
+    issued_at      DateTime @default(now())
+
+    project Project @relation(fields: [id_project], references: [id], map: "certificate_id_project_foreign")
+    user    User    @relation(fields: [id_user], references: [id], map: "certificate_id_user_foreign")
+
+    @@unique([id_project, id_user])
+    @@index([id_project], map: "certificate_id_project_foreign")
+    @@index([id_user], map: "certificate_id_user_foreign")
+    @@map("certificate")
 }

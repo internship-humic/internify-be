@@ -14,6 +14,7 @@ const feedbackRoutes = require('./routes/feedback.routes');
 const batchRoutes = require('./routes/batch.routes');
 const projectRoutes = require('./routes/project.routes');
 const taskRoutes = require('./routes/task.routes');
+const certificateRoutes = require('./routes/certificate.routes');
 const setupSwaggerDocs = require('./docs/swagger');
 
 const PORT = process.env.PORT;
@@ -58,6 +59,7 @@ app.use("/feedback-api", feedbackRoutes);
 app.use("/batch-api", batchRoutes);
 app.use("/project-api", projectRoutes);
 app.use("/task-api", taskRoutes);
+app.use("/certificate-api", certificateRoutes);
 // app.use("/project-member-api", projectMemberRoutes);
 
 
