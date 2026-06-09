@@ -58,6 +58,27 @@ class ProjectService {
         }
       }
 
+      const userIds = users.map((user) => user.id);
+
+      if (userIds.length > 0) {
+        const activeMemberships = await projectRepository.findActiveMembershipsByUserIds(userIds);
+
+        if (activeMemberships.length > 0) {
+          const assignedInterns = activeMemberships.map((membership) => {
+            const email = membership.user?.email || "unknown email";
+            const projectName = membership.project?.project_name || "Unknown Project";
+
+            return `${email} already assigned to ${projectName}`;
+          });
+
+          return error(
+            new ConflictError(
+              `One or more interns already have an active project: ${assignedInterns.join(", ")}`
+            )
+          );
+        }
+      }
+
       const newProjectData = {
         id_admin: parseInt(actor.id),
         project_icon: projectData.project_icon,
@@ -69,7 +90,6 @@ class ProjectService {
         status: "active",
       };
 
-      const userIds = users.map((user) => user.id);
       const project = await projectRepository.createWithMembers(
         newProjectData,
         userIds,
@@ -441,7 +461,7 @@ class ProjectService {
         const activeMembership = intern.project_members?.[0] || null;
         const projectName = activeMembership?.project?.project_name || "Unassigned";
         const role = intern.lamaran_magang?.lowongan_magang?.posisi || "-";
-        
+
         return {
           id: intern.id,
           name: intern.full_name,
